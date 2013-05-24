@@ -14,8 +14,8 @@ import sim.config as c
 class PlotWidget(QtGui.QWidget):
     """The main display/plotting widget. This widget plots the robot, the map, 
     and the laser scans."""
-    def __init__(self):
-        super(PlotWidget, self).__init__()
+    def __init__(self, parent):
+        super(PlotWidget, self).__init__(parent)
         self.loadGUI()
 
     def loadGUI(self):

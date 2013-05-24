@@ -5,10 +5,10 @@ import sys
 from PySide import QtGui
 
 # MSL Sim imports
-from sim.controller.plotting import PlotWidget
+from sim.controller.window import MainWindow
 
 
 app = QtGui.QApplication(sys.argv)
-plot_widget = PlotWidget()
-plot_widget.show()
+main_window = MainWindow()
+main_window.show()
 sys.exit(app.exec_())
