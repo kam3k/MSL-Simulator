@@ -19,12 +19,17 @@ class Robot(object):
         self.moved = False # flag to determine if robot should be redrawn
         self.scanned = False # flag to determine if laser should be redrawn
         self.scan_history = [] # (pose, ranges) of every laser scan
+        self.laser = laser.Laser(self.pose)
 
     def translate(self, distance):
         """Update the (x, y) position of the robot after moving it forward a set
         distance."""
         self.x = self.x + math.cos(self.heading) * distance
         self.y = self.y + math.sin(self.heading) * distance
+
+    @property
+    def pose(self):
+        return (self.x, self.y, self.heading)
 
     def rotate(self, angle):
         """Update the heading of the robot after rotating it a set angle."""
@@ -47,7 +52,9 @@ class Robot(object):
     def scan_laser(self, line_map):
         """Scan the laser and append the resulting ranges and the current pose 
         to the scan history."""
-        pose = (self.x, self.y, self.heading)
-        ranges = laser.scan(pose, line_map)
-        self.scan_history.append((pose, ranges))
+        # update laser pose to match robot pose
+        self.laser.pose = self.pose
+        # scan laser and append the current pose and ranges to the scan histroy
+        ranges = self.laser.scan(line_map)
+        self.scan_history.append((self.pose, ranges))
         self.scanned = True
