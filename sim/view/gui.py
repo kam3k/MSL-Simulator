@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'gui.ui'
 #
-# Created: Tue May 28 14:42:41 2013
+# Created: Tue May 28 21:56:28 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_main_window(object):
     def setupUi(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(780, 808)
+        main_window.resize(969, 808)
         main_window.setMinimumSize(QtCore.QSize(0, 0))
         self.centralwidget = QtGui.QWidget(main_window)
         self.centralwidget.setObjectName("centralwidget")
@@ -373,31 +373,32 @@ class Ui_main_window(object):
         self.label_14.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_14.setObjectName("label_14")
         self.gridLayout_8.addWidget(self.label_14, 5, 0, 1, 1)
-        self.laser_res_slider_2 = QtGui.QSlider(self.laser_box)
-        self.laser_res_slider_2.setMinimum(1)
-        self.laser_res_slider_2.setMaximum(15)
-        self.laser_res_slider_2.setOrientation(QtCore.Qt.Horizontal)
-        self.laser_res_slider_2.setInvertedAppearance(False)
-        self.laser_res_slider_2.setInvertedControls(False)
-        self.laser_res_slider_2.setObjectName("laser_res_slider_2")
-        self.gridLayout_8.addWidget(self.laser_res_slider_2, 5, 1, 1, 1)
-        self.laser_freq_box_2 = QtGui.QSpinBox(self.laser_box)
-        self.laser_freq_box_2.setMinimum(1)
-        self.laser_freq_box_2.setMaximum(15)
-        self.laser_freq_box_2.setObjectName("laser_freq_box_2")
-        self.gridLayout_8.addWidget(self.laser_freq_box_2, 5, 2, 1, 1)
+        self.laser_noise_slider = QtGui.QSlider(self.laser_box)
+        self.laser_noise_slider.setMinimum(1)
+        self.laser_noise_slider.setMaximum(15)
+        self.laser_noise_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.laser_noise_slider.setInvertedAppearance(False)
+        self.laser_noise_slider.setInvertedControls(False)
+        self.laser_noise_slider.setObjectName("laser_noise_slider")
+        self.gridLayout_8.addWidget(self.laser_noise_slider, 5, 1, 1, 1)
+        self.laser_noise_box = QtGui.QSpinBox(self.laser_box)
+        self.laser_noise_box.setMinimum(1)
+        self.laser_noise_box.setMaximum(15)
+        self.laser_noise_box.setObjectName("laser_noise_box")
+        self.gridLayout_8.addWidget(self.laser_noise_box, 5, 2, 1, 1)
         self.gridLayout_7.addLayout(self.gridLayout_8, 0, 6, 1, 1)
         self.gridLayout_4.addWidget(self.laser_box, 2, 0, 1, 1)
         self.tabWidget.addTab(self.settings, "")
         self.gridLayout.addWidget(self.tabWidget, 0, 1, 2, 1)
         self.graphics_view = PlotGraphicsView(self.centralwidget)
+        self.graphics_view.setMinimumSize(QtCore.QSize(600, 0))
         self.graphics_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.graphics_view.setSceneRect(QtCore.QRectF(0.0, 0.0, 10.0, 10.0))
         self.graphics_view.setObjectName("graphics_view")
         self.gridLayout.addWidget(self.graphics_view, 0, 0, 2, 1)
         main_window.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar()
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 780, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 969, 22))
         self.menubar.setObjectName("menubar")
         main_window.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(main_window)

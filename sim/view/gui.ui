@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
+    <width>969</width>
     <height>808</height>
    </rect>
   </property>
@@ -864,7 +864,7 @@
               </widget>
              </item>
              <item row="5" column="1">
-              <widget class="QSlider" name="laser_res_slider_2">
+              <widget class="QSlider" name="laser_noise_slider">
                <property name="minimum">
                 <number>1</number>
                </property>
@@ -883,7 +883,7 @@
               </widget>
              </item>
              <item row="5" column="2">
-              <widget class="QSpinBox" name="laser_freq_box_2">
+              <widget class="QSpinBox" name="laser_noise_box">
                <property name="minimum">
                 <number>1</number>
                </property>
@@ -903,6 +903,12 @@
     </item>
     <item row="0" column="0" rowspan="2">
      <widget class="PlotGraphicsView" name="graphics_view">
+      <property name="minimumSize">
+       <size>
+        <width>600</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAsNeeded</enum>
       </property>
@@ -923,7 +929,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>780</width>
+     <width>969</width>
      <height>22</height>
     </rect>
    </property>

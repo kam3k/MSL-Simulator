@@ -2,22 +2,25 @@
 import math
 
 # MSL Sim imports
-import sim.config as c
+import sim.defaults as d
 import sim.model.laser as laser
 
 class Robot(object):
     """Contains all the data and methods pertaining to the robot and its
     sensor(s)."""
-    def __init__(self, x, y, heading=0, width=0.8, height=0.5):
-        self.x = x
-        self.y = y
-        self.heading = heading
-        self.width = width
-        self.height = height
+    def __init__(self):
+        self.x, self.y, self.heading = d.ROBOT_INIT_POSE
+        self.width = d.ROBOT_WIDTH
+        self.length = d.ROBOT_LENGTH
+        self.wheelbase = d.ROBOT_WHEELBASE
+        self.wheel_rad = d.ROBOT_WHEEL_RAD
+        self.max_vel = d.ROBOT_MAX_VEL
+        self.max_ang_vel = d.ROBOT_MAX_ANG_VEL
         self.vel = 0
         self.ang_vel = 0
-        self.moved = False # flag to determine if robot should be redrawn
+        self.moved = False # flag to determine if robot should be moved
         self.scanned = False # flag to determine if laser should be redrawn
+        self.sized = False # flag to determine if robot should be redrawn
         self.scan_history = [] # (pose, ranges) of every laser scan
         self.laser = laser.Laser(self.pose)
 
@@ -41,12 +44,12 @@ class Robot(object):
         if abs(self.vel) < 1e-5:
             self.vel = 0
         else:
-            self.translate(self.vel * 1.0/c.ODOM_FREQ)
+            self.translate(self.vel * 1.0/d.ODOM_FREQ)
             self.moved = True
         if abs(self.ang_vel) < 1e-5:
             self.ang_vel = 0
         else:
-            self.rotate(self.ang_vel * 1.0/c.ODOM_FREQ)
+            self.rotate(self.ang_vel * 1.0/d.ODOM_FREQ)
             self.moved = True
 
     def scan_laser(self, line_map):
@@ -58,3 +61,17 @@ class Robot(object):
         ranges = self.laser.scan(line_map)
         self.scan_history.append((self.pose, ranges))
         self.scanned = True
+
+    def set_width(self, width):
+        self.width = width
+        self.sized = True
+
+    def set_length(self, length):
+        self.length = length
+        self.sized = True
+
+    def set_wheelbase(self, wheelbase):
+        self.wheelbase = wheelbase
+
+    def set_wheel_rad(self, wheel_rad):
+        self.wheel_rad = wheel_rad

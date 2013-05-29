@@ -6,30 +6,26 @@ import math
 from PySide import QtGui, QtCore
 
 # MSL Sim imports
-from sim.model.robot import Robot
 from sim.model.lines import get_line_dict
-import sim.config as c
+import sim.defaults as d
 
 
 class PlotGraphicsView(QtGui.QGraphicsView):
     def __init__(self, parent):
         super(PlotGraphicsView, self).__init__(parent)
-        self.robot = Robot(0, 0)
         self.line_map = []
         self.scale(20, 20)
         self.scan_list = []
         self.set_colours()
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
-        self.setSceneRect(0, 0, c.MAP_WIDTH, c.MAP_HEIGHT)
-        self.initialiseRobot()
-        self.start_timers()
+        self.setSceneRect(0, 0, d.MAP_WIDTH, d.MAP_HEIGHT)
 
     def initialiseRobot(self):
         """Draws the robot in the scene."""
-        self.rect = self.scene().addRect(self.robot.x - self.robot.width/2.0,
-                                         self.robot.y - self.robot.height/2.0,
-                                         self.robot.width, self.robot.height,
+        self.rect = self.scene().addRect(self.robot.x - self.robot.length/2.0,
+                                         self.robot.y - self.robot.width/2.0,
+                                         self.robot.length, self.robot.width,
                                          self.robot_pen)
         self.rect.setTransformOriginPoint(self.robot.x,
                                           self.robot.y)
@@ -39,14 +35,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         from the laser."""
         self.plot_timer = QtCore.QTimer()
         self.plot_timer.timeout.connect(self.plot_update)
-        self.plot_timer.start(1000/c.PLOT_FREQ)
+        self.plot_timer.start(1000/d.PLOT_FREQ)
         self.odom_timer = QtCore.QTimer()
         self.odom_timer.timeout.connect(self.robot.update_pose)
-        self.odom_timer.start(1000/c.ODOM_FREQ)
+        self.odom_timer.start(1000/d.ODOM_FREQ)
         self.laser_timer = QtCore.QTimer()
         self.laser_timer.timeout.connect(
                 lambda: self.robot.scan_laser(self.line_map))
-        self.laser_timer.start(1000/c.LASER_FREQ)
+        self.laser_timer.start(1000/d.LASER_FREQ)
 
     def set_colours(self):
         """Creates QPen instances for all the objects that will be plotted."""
@@ -54,7 +50,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.robot_pen = QtGui.QPen()
         red = QtGui.QColor(255, 0, 0)
         green = QtGui.QColor(0, 255, 0)
-        red.setAlpha(20)
+        red.setAlpha(40)
         self.laser_pen.setColor(red)
         self.robot_pen.setColor(green)
 
@@ -66,6 +62,10 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.rect.setY(self.robot.y)
             self.rect.setRotation(180/math.pi * self.robot.heading)
             self.robot.moved = False
+        if self.robot.sized:
+            self.rect.setWidth(self.robot.width)
+            self.rect.setHeight(self.robot.height)
+            self.robot.sized = False
         if self.robot.scanned:
             self.draw_laser_beams(self.robot.scan_history[-1])
             self.robot.scanned = False
@@ -74,7 +74,10 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         """Deletes any previously drawn laser beams and plots the latest laser
         measurement."""
         pose, ranges = scan
-        x, y, theta = pose
+        x, y, theta = self.robot.pose
+        laser_range = self.robot.laser.range
+        laser_min_angle = self.robot.laser.min_angle
+        laser_res = self.robot.laser.resolution
         # Empty out the scan group
         if self.scan_list:
             for item in self.scan_list:
@@ -82,11 +85,11 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.scan_list = []
         for (i, r) in enumerate(ranges):
             if r == 0:
-                r = c.LASER_RANGE
+                r = laser_range
             x_2 = x + math.pi/180 + r*math.cos(
-                    theta + math.pi/180*(c.LASER_MIN_ANGLE + c.LASER_RES*i))
+                    theta + math.pi/180*(laser_min_angle + laser_res*i))
             y_2 = y + math.pi/180 + r*math.sin(
-                    theta + math.pi/180*(c.LASER_MIN_ANGLE + c.LASER_RES*i))
+                    theta + math.pi/180*(laser_min_angle + laser_res*i))
             self.scan_list.append(
                     self.scene().addLine(QtCore.QLineF(x, y, x_2, y_2), self.laser_pen))
 
