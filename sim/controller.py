@@ -16,6 +16,13 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.robot = mod.Robot()
         self.loadGUI()
+        # Give the zoomed in plotting area the same scene as the zoomed out one
+        self.ui.graphics_view_zoom.setScene(self.ui.graphics_view.scene())
+        # Initialize the camera in the zoomed in plotting window
+        self.ui.graphics_view_zoom.initializeCamera(self.robot)
+        # Give the zoomed-out plotting area a copy of the zoomed-in plotting
+        # area so it can change it based on its timers
+        self.ui.graphics_view.zoom = self.ui.graphics_view_zoom
         # Give the plotting area the same robot as the rest of the GUI and start
         # updating it via timers
         self.ui.graphics_view.robot = self.robot
@@ -153,6 +160,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                                          self.robot_pen)
         self.rect.setTransformOriginPoint(self.robot.x,
                                           self.robot.y)
+        self.previous_pose = self.robot.pose
 
     def start_timers(self):
         """Starts separate timers to update the plot, odometry, and range data
@@ -179,23 +187,40 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def plot_update(self):
         """Updates the plot. This method is called automatically by the
         plot_timer."""
+        # Position of robot in plot
         if self.robot.moved:
             self.rect.setX(self.robot.x)
             self.rect.setY(self.robot.y)
             self.rect.setRotation(180/math.pi * self.robot.heading)
-            self.robot.moved = False
+        # Size of robot
         if self.robot.sized:
             self.rect.setWidth(self.robot.width)
             self.rect.setHeight(self.robot.height)
-            self.robot.sized = False
+        # Camera pose for zoomed in view
+        if self.robot.sized or self.robot.moved:
+            self.move_zoomed_view()
+        # Laser beams
         if self.robot.scanned:
             self.draw_laser_beams(self.robot.scan_history[-1])
-            self.robot.scanned = False
+        # Reset flags
+        self.robot.scanned = False
+        self.robot.moved = False
+        self.robot.sized = False
 
     def set_timer_frequencies(self):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
         self.odom_timer.setInterval(1000.0/self.robot.odometer.freq)
         self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
+
+    def move_zoomed_view(self):
+        # Adjust the window of the zoomed in view
+        self.zoom.setSceneRect(QtCore.QRectF(
+            self.robot.x - self.robot.length/2.0,
+            self.robot.y - self.robot.width/2.0,
+            self.robot.length, self.robot.width))
+        heading_change = 180/math.pi * (self.previous_pose[2] - self.robot.heading)
+        self.zoom.rotate(heading_change)
+        self.previous_pose = self.robot.pose
 
     def draw_laser_beams(self, scan):
         """Deletes any previously drawn laser beams and plots the latest laser
@@ -250,3 +275,15 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.line_map.append(line)
             self.scene().addItem(
                     QtGui.QGraphicsLineItem(QtCore.QLineF(self.start, end)))
+
+
+class PlotGraphicsViewZoom(QtGui.QGraphicsView):
+    def __init__(self, parent):
+        super(PlotGraphicsViewZoom, self).__init__(parent)
+        self.parent = parent
+        self.scale(100, 100)
+
+    def initializeCamera(self, robot):
+        self.setSceneRect(QtCore.QRectF(robot.x - robot.length/2.0, 
+            robot.y - robot.width/2.0, robot.length, robot.width))
+        self.rotate(-90)

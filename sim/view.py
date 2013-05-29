@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/gui.ui'
 #
-# Created: Wed May 29 08:27:53 2013
+# Created: Wed May 29 13:32:14 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_main_window(object):
     def setupUi(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(969, 808)
+        main_window.resize(1079, 808)
         main_window.setMinimumSize(QtCore.QSize(0, 0))
         self.centralwidget = QtGui.QWidget(main_window)
         self.centralwidget.setObjectName("centralwidget")
@@ -389,16 +389,22 @@ class Ui_main_window(object):
         self.gridLayout_7.addLayout(self.gridLayout_8, 0, 6, 1, 1)
         self.gridLayout_4.addWidget(self.laser_box, 2, 0, 1, 1)
         self.tabWidget.addTab(self.settings, "")
-        self.gridLayout.addWidget(self.tabWidget, 0, 1, 2, 1)
+        self.gridLayout.addWidget(self.tabWidget, 0, 3, 2, 1)
+        self.groupBox = QtGui.QGroupBox(self.centralwidget)
+        self.groupBox.setObjectName("groupBox")
+        self.gridLayout.addWidget(self.groupBox, 0, 0, 1, 1)
         self.graphics_view = PlotGraphicsView(self.centralwidget)
         self.graphics_view.setMinimumSize(QtCore.QSize(600, 0))
         self.graphics_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.graphics_view.setSceneRect(QtCore.QRectF(0.0, 0.0, 10.0, 10.0))
         self.graphics_view.setObjectName("graphics_view")
-        self.gridLayout.addWidget(self.graphics_view, 0, 0, 2, 1)
+        self.gridLayout.addWidget(self.graphics_view, 1, 0, 1, 3)
+        self.graphics_view_zoom = PlotGraphicsViewZoom(self.centralwidget)
+        self.graphics_view_zoom.setObjectName("graphics_view_zoom")
+        self.gridLayout.addWidget(self.graphics_view_zoom, 0, 1, 1, 2)
         main_window.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar()
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 969, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1079, 22))
         self.menubar.setObjectName("menubar")
         main_window.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(main_window)
@@ -433,5 +439,6 @@ class Ui_main_window(object):
         self.label_13.setText(QtGui.QApplication.translate("main_window", "Frequency [Hz]", None, QtGui.QApplication.UnicodeUTF8))
         self.label_14.setText(QtGui.QApplication.translate("main_window", "Noise [cm]", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings), QtGui.QApplication.translate("main_window", "Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox.setTitle(QtGui.QApplication.translate("main_window", "Information", None, QtGui.QApplication.UnicodeUTF8))
 
-from sim.controller import PlotGraphicsView
+from sim.controller import PlotGraphicsViewZoom, PlotGraphicsView

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>969</width>
+    <width>1079</width>
     <height>808</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1" rowspan="2">
+    <item row="0" column="3" rowspan="2">
      <widget class="QTabWidget" name="tabWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -901,7 +901,14 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="0" rowspan="2">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Information</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3">
      <widget class="PlotGraphicsView" name="graphics_view">
       <property name="minimumSize">
        <size>
@@ -922,6 +929,9 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="1" colspan="2">
+     <widget class="PlotGraphicsViewZoom" name="graphics_view_zoom"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -929,7 +939,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>969</width>
+     <width>1079</width>
      <height>22</height>
     </rect>
    </property>
@@ -939,6 +949,11 @@
  <customwidgets>
   <customwidget>
    <class>PlotGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>sim.controller</header>
+  </customwidget>
+  <customwidget>
+   <class>PlotGraphicsViewZoom</class>
    <extends>QGraphicsView</extends>
    <header>sim.controller</header>
   </customwidget>
