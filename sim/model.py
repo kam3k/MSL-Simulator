@@ -63,6 +63,7 @@ class Laser(object):
         self.resolution = d.LASER_RES
         self.range = d.LASER_RANGE
         self.noise = d.LASER_NOISE
+        self.freq = d.LASER_FREQ
 
     def _get_beam_lines(self):
         """Given the pose of the robot, returns a list of line dictionaries. Each
@@ -105,6 +106,13 @@ class Laser(object):
         return ranges
 
 
+class Odometer(object):
+    def __init__(self):
+        self.resolution = d.ODOM_RES
+        self.noise = d.ODOM_NOISE
+        self.freq = d.ODOM_FREQ
+
+
 class Robot(object):
     """Contains all the data and methods pertaining to the robot and its
     sensor(s)."""
@@ -123,6 +131,7 @@ class Robot(object):
         self.sized = False # flag to determine if robot should be redrawn
         self.scan_history = [] # (pose, ranges) of every laser scan
         self.laser = Laser(self.pose)
+        self.odometer = Odometer()
 
     def translate(self, distance):
         """Update the (x, y) position of the robot after moving it forward a set

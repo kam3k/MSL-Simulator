@@ -20,6 +20,7 @@ class MainWindow(QtGui.QMainWindow):
         # updating it via timers
         self.ui.graphics_view.robot = self.robot
         self.ui.graphics_view.initialiseRobot()
+        self.settings_to_default()
         self.ui.graphics_view.start_timers()
 
     def loadGUI(self):
@@ -29,7 +30,6 @@ class MainWindow(QtGui.QMainWindow):
         from sim.view import Ui_main_window
         self.ui = Ui_main_window()
         self.ui.setupUi(self)
-        self.settings_to_default()
         self.connect_signals_to_slots()
 
     def connect_signals_to_slots(self):
@@ -121,6 +121,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.laser_freq_slider.setValue(value)
         self.ui.laser_freq_box.setValue(value)
         self.robot.laser.freq = value
+        self.ui.graphics_view.set_timer_frequencies()
 
     def laser_noise_changed(self, value):
         self.ui.laser_noise_slider.setValue(value)
@@ -131,6 +132,8 @@ class MainWindow(QtGui.QMainWindow):
 class PlotGraphicsView(QtGui.QGraphicsView):
     def __init__(self, parent):
         super(PlotGraphicsView, self).__init__(parent)
+        self.parent = parent
+        self.plot_freq = d.PLOT_FREQ
         self.line_map = []
         self.scale(20, 20)
         self.scan_list = []
@@ -138,6 +141,9 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
         self.setSceneRect(0, 0, d.MAP_WIDTH, d.MAP_HEIGHT)
+        self.plot_timer = QtCore.QTimer()
+        self.odom_timer = QtCore.QTimer()
+        self.laser_timer = QtCore.QTimer()
 
     def initialiseRobot(self):
         """Draws the robot in the scene."""
@@ -151,16 +157,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def start_timers(self):
         """Starts separate timers to update the plot, odometry, and range data
         from the laser."""
-        self.plot_timer = QtCore.QTimer()
+        self.set_timer_frequencies()
         self.plot_timer.timeout.connect(self.plot_update)
-        self.plot_timer.start(1000/d.PLOT_FREQ)
-        self.odom_timer = QtCore.QTimer()
         self.odom_timer.timeout.connect(self.robot.update_pose)
-        self.odom_timer.start(1000/d.ODOM_FREQ)
-        self.laser_timer = QtCore.QTimer()
         self.laser_timer.timeout.connect(
                 lambda: self.robot.scan_laser(self.line_map))
-        self.laser_timer.start(1000/d.LASER_FREQ)
+        self.plot_timer.start()
+        self.odom_timer.start()
+        self.laser_timer.start()
 
     def set_colours(self):
         """Creates QPen instances for all the objects that will be plotted."""
@@ -187,6 +191,11 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         if self.robot.scanned:
             self.draw_laser_beams(self.robot.scan_history[-1])
             self.robot.scanned = False
+
+    def set_timer_frequencies(self):
+        self.plot_timer.setInterval(1000.0/self.plot_freq)
+        self.odom_timer.setInterval(1000.0/self.robot.odometer.freq)
+        self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
 
     def draw_laser_beams(self, scan):
         """Deletes any previously drawn laser beams and plots the latest laser
