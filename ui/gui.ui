@@ -940,7 +940,7 @@
   <customwidget>
    <class>PlotGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>sim.controller.plotting</header>
+   <header>sim.controller</header>
   </customwidget>
  </customwidgets>
  <resources/>

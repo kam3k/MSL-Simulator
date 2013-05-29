@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui.ui'
+# Form implementation generated from reading ui file 'ui/gui.ui'
 #
-# Created: Tue May 28 21:56:28 2013
+# Created: Wed May 29 08:27:53 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -434,4 +434,4 @@ class Ui_main_window(object):
         self.label_14.setText(QtGui.QApplication.translate("main_window", "Noise [cm]", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings), QtGui.QApplication.translate("main_window", "Settings", None, QtGui.QApplication.UnicodeUTF8))
 
-from sim.controller.plotting import PlotGraphicsView
+from sim.controller import PlotGraphicsView

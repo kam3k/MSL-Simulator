@@ -5,7 +5,7 @@ import sys
 from PySide import QtGui
 
 # MSL Sim imports
-from sim.controller.window import MainWindow
+from sim.controller import MainWindow
 
 
 app = QtGui.QApplication(sys.argv)

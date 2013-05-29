@@ -20,7 +20,7 @@ LASER_RANGE = 5.0 # range [m]
 LASER_NOISE = 0.01 # standard deviation on range measurement [m]
 LASER_FREQ = 10 # how often the laser is scanned [Hz]
 
-# odometry
+# odometer
 ODOM_RES = 16 # [bits]
 ODOM_FREQ = 10 # how often the odometry is update [Hz]
 ODOM_NOISE = 0.001 # [rad]
