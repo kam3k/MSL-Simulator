@@ -123,13 +123,13 @@ class Robot(object):
         self.wheelbase = d.ROBOT_WHEELBASE
         self.wheel_rad = d.ROBOT_WHEEL_RAD
         self.max_vel = d.ROBOT_MAX_VEL
-        self.max_ang_vel = d.ROBOT_MAX_ANG_VEL
-        self.vel = 0
-        self.ang_vel = 0
+        self.max_ang_vel = d.ROBOT_MAX_ANG_VEL * pi/180
+        self.vel = 0.0
+        self.ang_vel = 0.0
         self.moved = False # flag to determine if robot should be moved
         self.scanned = False # flag to determine if laser should be redrawn
         self.sized = False # flag to determine if robot should be redrawn
-        self.scan_history = [] # (pose, ranges) of every laser scan
+        self.last_scan = None # (pose, ranges) of latest laser scan
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
 
@@ -168,7 +168,7 @@ class Robot(object):
         self.laser.pose = self.pose
         # scan laser and append the current pose and ranges to the scan histroy
         ranges = self.laser.scan(line_map)
-        self.scan_history.append((self.pose, ranges))
+        self.last_scan = (self.pose, ranges)
         self.scanned = True
 
     def set_width(self, width):

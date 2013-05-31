@@ -16,6 +16,9 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.robot = mod.Robot()
         self.loadGUI()
+        # Place and scale the logo
+        pixmap = QtGui.QPixmap("msl_logo.png")
+        self.ui.logo_label.setPixmap(pixmap)
         # Give the zoomed in plotting area the same scene as the zoomed out one
         self.ui.graphics_view_zoom.setScene(self.ui.graphics_view.scene())
         # Initialize the camera in the zoomed in plotting window
@@ -28,6 +31,11 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.graphics_view.robot = self.robot
         self.ui.graphics_view.initialiseRobot()
         self.settings_to_default()
+        # Start a timer that updates the labels
+        self.label_timer = QtCore.QTimer()
+        self.label_timer.timeout.connect(self.update_info_labels)
+        self.label_timer.start()
+        # Start timers that update the plot and the model
         self.ui.graphics_view.start_timers()
 
     def loadGUI(self):
@@ -38,6 +46,27 @@ class MainWindow(QtGui.QMainWindow):
         self.ui = Ui_main_window()
         self.ui.setupUi(self)
         self.connect_signals_to_slots()
+        # Add items to pull down menus
+        self.ui.laser_combo.addItems(["Custom", "SICK LMS111", "Hokuyo URG-04LX"])
+        self.ui.robot_combo.addItems(["Custom", "Clearpath Husky A200", "MobileRobots P3AT"])
+
+    def update_info_labels(self):
+        self.ui.pose_label.setText("%0.2f m, %0.2f m, %d deg" % (self.robot.x,
+                self.robot.y, 180/math.pi*self.robot.heading))
+        self.ui.velocity_label.setText("%0.2f m/s" % self.robot.vel)
+        self.ui.ang_vel_label.setText("%d deg/s" % int(180/math.pi*self.robot.ang_vel))
+
+    def toggled_enable_laser_settings(self, b):
+        self.ui.laser_range_slider.setEnabled(b)
+        self.ui.laser_range_box.setEnabled(b)
+        self.ui.laser_fov_slider.setEnabled(b)
+        self.ui.laser_fov_box.setEnabled(b)
+        self.ui.laser_res_slider.setEnabled(b)
+        self.ui.laser_res_box.setEnabled(b)
+        self.ui.laser_freq_slider.setEnabled(b)
+        self.ui.laser_freq_box.setEnabled(b)
+        self.ui.laser_noise_slider.setEnabled(b)
+        self.ui.laser_noise_box.setEnabled(b)
 
     def connect_signals_to_slots(self):
         # -----
@@ -52,6 +81,7 @@ class MainWindow(QtGui.QMainWindow):
         # -----
         # LASER
         # -----
+        self.ui.laser_combo.currentIndexChanged.connect(self.laser_combo_changed)
         self.ui.laser_range_slider.valueChanged.connect(
                 self.laser_range_changed)
         self.ui.laser_range_box.valueChanged.connect(
@@ -73,10 +103,18 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.laser_noise_box.valueChanged.connect(
                 self.laser_noise_changed)
 
+        # -----
+        # OTHER
+        # -----
+        self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
+        self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
+
     def settings_to_default(self):
         # -----
         # ROBOT
         # -----
+        self.robot_ang_vel_changed(d.ROBOT_MAX_ANG_VEL)
+
         # --------
         # ODOMETER
         # --------
@@ -90,6 +128,12 @@ class MainWindow(QtGui.QMainWindow):
         self.laser_freq_changed(d.LASER_FREQ)
         self.laser_noise_changed(d.LASER_NOISE)
 
+        # -----
+        # OTHER
+        # -----
+        self.vel_inc_changed(d.VELOCITY_INCREMENT)
+        self.ang_vel_inc_changed(d.ANG_VELOCITY_INCREMENT)
+
     # --------------------------------------------------------------------------
     # SLOTS
     # --------------------------------------------------------------------------
@@ -100,7 +144,7 @@ class MainWindow(QtGui.QMainWindow):
     def robot_ang_vel_changed(self, value):
         self.ui.robot_ang_vel_slider.setValue(value)
         self.ui.robot_ang_vel_box.setValue(value)
-        self.robot.max_ang_vel = value
+        self.robot.max_ang_vel = value * math.pi/180
 
     # --------
     # ODOMETER
@@ -108,6 +152,26 @@ class MainWindow(QtGui.QMainWindow):
     # -----
     # LASER
     # -----
+    def laser_combo_changed(self, value):
+        if value == 0: # Custom
+            self.toggled_enable_laser_settings(True)
+        if value == 1: # SICK LMS111
+            self.laser_range_changed(d.SICK_111_RANGE)
+            self.laser_fov_changed(
+                    (d.SICK_111_MAX_ANGLE - d.SICK_111_MIN_ANGLE)/2)
+            self.laser_res_changed(d.SICK_111_RES)
+            self.laser_freq_changed(d.SICK_111_FREQ)
+            self.laser_noise_changed(d.SICK_111_NOISE)
+            self.toggled_enable_laser_settings(False)
+        elif value == 2: # Hokuyo URG-04LX
+            self.laser_range_changed(d.HOK_04_RANGE)
+            self.laser_fov_changed(
+                    (d.HOK_04_MAX_ANGLE - d.HOK_04_MIN_ANGLE)/2)
+            self.laser_res_changed(d.HOK_04_RES)
+            self.laser_freq_changed(d.HOK_04_FREQ)
+            self.laser_noise_changed(d.HOK_04_NOISE)
+            self.toggled_enable_laser_settings(False)
+
     def laser_range_changed(self, value):
         self.ui.laser_range_box.setValue(value)
         self.ui.laser_range_slider.setValue(value)
@@ -134,6 +198,46 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.laser_noise_slider.setValue(value)
         self.ui.laser_noise_box.setValue(value)
         self.robot.laser.noise = value/100.0 # convert to metres
+
+    # -----
+    # OTHER
+    # -----
+    def vel_inc_changed(self, value):
+        self.ui.vel_inc_box.setValue(value)
+        self.vel_inc = value
+
+    def ang_vel_inc_changed(self, value):
+        self.ui.ang_vel_inc_box.setValue(value)
+        self.ang_vel_inc = value
+
+    def keyPressEvent(self, event):
+        """Adjusts the translational and angular velocites of the robot."""
+        vel_inc = self.vel_inc
+        ang_vel_inc = self.ang_vel_inc * math.pi/180
+        if event.key() == QtCore.Qt.Key_W:
+            # Go to zero on sign changes
+            if self.robot.vel < 0 and self.robot.vel + vel_inc > 0:
+                self.robot.vel = 0
+            else:
+                self.robot.vel += vel_inc
+        elif event.key() == QtCore.Qt.Key_S:
+            # Go to zero on sign changes
+            if self.robot.vel > 0 and self.robot.vel - vel_inc < 0:
+                self.robot.vel = 0
+            else:
+                self.robot.vel -= vel_inc
+        elif event.key() == QtCore.Qt.Key_A:
+            if self.robot.ang_vel > -self.robot.max_ang_vel:
+                if (self.robot.ang_vel - ang_vel_inc < -self.robot.max_ang_vel):
+                    self.robot.ang_vel = -self.robot.max_ang_vel
+                else:
+                    self.robot.ang_vel -= ang_vel_inc
+        elif event.key() == QtCore.Qt.Key_D:
+            if self.robot.ang_vel < self.robot.max_ang_vel:
+                if (self.robot.ang_vel + ang_vel_inc > self.robot.max_ang_vel):
+                    self.robot.ang_vel = self.robot.max_ang_vel
+                else:
+                    self.robot.ang_vel += ang_vel_inc
 
 
 class PlotGraphicsView(QtGui.QGraphicsView):
@@ -201,7 +305,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.move_zoomed_view()
         # Laser beams
         if self.robot.scanned:
-            self.draw_laser_beams(self.robot.scan_history[-1])
+            self.draw_laser_beams(self.robot.last_scan)
         # Reset flags
         self.robot.scanned = False
         self.robot.moved = False
@@ -214,10 +318,9 @@ class PlotGraphicsView(QtGui.QGraphicsView):
 
     def move_zoomed_view(self):
         # Adjust the window of the zoomed in view
-        self.zoom.setSceneRect(QtCore.QRectF(
-            self.robot.x - self.robot.length/2.0,
-            self.robot.y - self.robot.width/2.0,
-            self.robot.length, self.robot.width))
+        self.zoom.setSceneRect(self.robot.x - self.robot.length/2.0, 
+                self.robot.y - self.robot.width/2.0, 
+                self.robot.length, self.robot.width)
         heading_change = 180/math.pi * (self.previous_pose[2] - self.robot.heading)
         self.zoom.rotate(heading_change)
         self.previous_pose = self.robot.pose
@@ -245,19 +348,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.scan_list.append(
                     self.scene().addLine(QtCore.QLineF(x, y, x_2, y_2), self.laser_pen))
 
-    def keyPressEvent(self, event):
-        """Adjusts the translational and angular velocites of the robot."""
-        if event.key() == QtCore.Qt.Key_W:
-            self.robot.vel += 0.1
-        elif event.key() == QtCore.Qt.Key_S:
-            self.robot.vel -= 0.1
-        elif event.key() == QtCore.Qt.Key_A:
-            self.robot.ang_vel -=  math.pi/24
-        elif event.key() == QtCore.Qt.Key_D:
-            self.robot.ang_vel +=  math.pi/24
-        if event.key() == QtCore.Qt.Key_Escape:
-            sys.exit()
-
     def mousePressEvent(self, event):
         """Records the coordinates of the point where the mouse was clicked on
         the scene."""
@@ -281,9 +371,9 @@ class PlotGraphicsViewZoom(QtGui.QGraphicsView):
     def __init__(self, parent):
         super(PlotGraphicsViewZoom, self).__init__(parent)
         self.parent = parent
-        self.scale(100, 100)
+        self.scale(40, 40)
 
     def initializeCamera(self, robot):
-        self.setSceneRect(QtCore.QRectF(robot.x - robot.length/2.0, 
-            robot.y - robot.width/2.0, robot.length, robot.width))
+        self.setSceneRect(robot.x - robot.length/2.0, robot.y - robot.width/2.0,
+                robot.length, robot.width)
         self.rotate(-90)
