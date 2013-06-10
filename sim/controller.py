@@ -1,6 +1,7 @@
 # Python imports
 import sys
 import math
+import time
 
 # PySide imports
 from PySide import QtGui, QtCore
@@ -152,6 +153,10 @@ class MainWindow(QtGui.QMainWindow):
         # -----
         self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
         self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
+        self.ui.start_record_button.clicked.connect(
+                self.ui.graphics_view.start_recording)
+        self.ui.stop_record_button.clicked.connect(
+                self.ui.graphics_view.stop_recording)
 
     def settings_to_default(self):
         # -----
@@ -371,6 +376,8 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.parent = parent
         self.plot_freq = d.PLOT_FREQ
         self.line_map = []
+        self.drawing_line = False # flag if user is drawing a line
+        self.line_item = None
         self.scale(20, -20)
         self.scan_list = []
         self.set_colours()
@@ -378,6 +385,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.setScene(self.g_scene)
         self.setSceneRect(-d.MAP_WIDTH/2.0, -d.MAP_HEIGHT/2.0, d.MAP_WIDTH,
                 d.MAP_HEIGHT)
+        self.recording = False
         self.plot_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
         self.laser_timer = QtCore.QTimer()
@@ -397,9 +405,8 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         from the laser."""
         self.set_timer_frequencies()
         self.plot_timer.timeout.connect(self.plot_update)
-        self.odom_timer.timeout.connect(self.robot.update_pose)
-        self.laser_timer.timeout.connect(
-                lambda: self.robot.scan_laser(self.line_map))
+        self.odom_timer.timeout.connect(self.odometry_update)
+        self.laser_timer.timeout.connect(self.laser_update)
         self.plot_timer.start()
         self.odom_timer.start()
         self.laser_timer.start()
@@ -431,9 +438,49 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.robot.changed = False
         # Laser beams
         if self.robot.scanned:
-            self.draw_laser_beams(self.robot.last_scan)
+            self.draw_laser_beams(self.latest_laser_scan)
             # Reset flag
             self.robot.scanned = False
+
+    def laser_update(self):
+        ranges = self.robot.scan_laser(self.line_map)
+        self.latest_laser_scan = ranges
+        if self.recording:
+            elapsed_time = time.time() - self.record_timer
+            self.laser_history.append(('ranges', elapsed_time, ranges))
+
+    def odometry_update(self):
+        odom = self.robot.update_pose()
+        if self.recording:
+            elapsed_time = time.time() - self.record_timer
+            self.odom_history.append(('odom', elapsed_time, odom))
+
+    def start_recording(self):
+        self.laser_history = []
+        self.odom_history = []
+        self.record_timer = time.time()
+        self.recording = True
+
+    def stop_recording(self):
+        self.recording = False
+        self.write_record_file()
+
+    def write_record_file(self):
+        history = self.odom_history + self.laser_history
+        chrono_hist = sorted(history, key = lambda history: history[1])
+        with open('record_file.rec', 'w+') as f:
+            for kind, t, data in chrono_hist:
+                if kind == 'odom':
+                    f.write('%s %0.4f %0.5f %0.5f\n' % (kind, t, data[0],
+                        data[1]))
+                elif kind == 'ranges':
+                    f.write('%s %0.4f ' % (kind, t))
+                    for r in data:
+                        if r == 0:
+                            f.write('%d ' % r)
+                        else:
+                            f.write('%0.3f ' % r)
+                    f.write('\n')
 
     def set_timer_frequencies(self):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
@@ -449,10 +496,9 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.zoom.rotate(heading_change)
         self.previous_pose = self.robot.pose
 
-    def draw_laser_beams(self, scan):
+    def draw_laser_beams(self, ranges):
         """Deletes any previously drawn laser beams and plots the latest laser
         measurement."""
-        pose, ranges = scan
         x, y, theta = self.robot.pose
         laser_range = self.robot.laser.range
         laser_min_angle = self.robot.laser.min_angle
@@ -478,17 +524,31 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         if event.button() == QtCore.Qt.LeftButton:
             self.start = QtCore.QPointF(self.mapToScene(event.pos()))
 
+    def mouseMoveEvent(self, event):
+        """Draws a line between the start and the current position of the 
+        cursor."""
+        if self.drawing_line:
+            end = QtCore.QPointF(self.mapToScene(event.pos()))
+            self.line_item.setLine(QtCore.QLineF(self.start, end))
+        else:
+            end = QtCore.QPointF(self.mapToScene(event.pos()))
+            self.line_item = QtGui.QGraphicsLineItem(QtCore.QLineF(self.start, end))
+            self.scene().addItem(self.line_item)
+            self.drawing_line = True
+
     def mouseReleaseEvent(self, event):
         """Draws a line from the recorded click coordinates and the position of 
         the cursor when the left mouse button is released. Adds this line to
         the line map."""
         if event.button() == QtCore.Qt.LeftButton:
             end = QtCore.QPointF(self.mapToScene(event.pos()))
-            line = mod.get_line_dict(self.start.x(), self.start.y(),
-                    end.x(), end.y())
-            self.line_map.append(line)
-            self.scene().addItem(
-                    QtGui.QGraphicsLineItem(QtCore.QLineF(self.start, end)))
+            # Only draw a line if the start and end coordinates are different
+            if self.start.x() != end.x() or self.start.y() != end.y():
+                line = mod.get_line_dict(self.start.x(), self.start.y(),
+                        end.x(), end.y())
+                self.line_map.append(line)
+            self.drawing_line = False
+            self.line_item = None
 
 
 class PlotGraphicsViewZoom(QtGui.QGraphicsView):

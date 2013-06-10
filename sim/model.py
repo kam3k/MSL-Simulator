@@ -1,7 +1,7 @@
 # Python imports
 import random
 from numpy import linspace
-from math import sin, cos, pi, sqrt
+from math import sin, cos, pi, sqrt, floor
 
 # MSL Sim imports
 import sim.defaults as d
@@ -108,9 +108,29 @@ class Laser(object):
 
 class Odometer(object):
     def __init__(self):
-        self.resolution = d.ODOM_RES
-        self.noise = d.ODOM_NOISE
+        self.res = d.ODOM_RES
         self.freq = d.ODOM_FREQ
+        self.noise = d.ODOM_NOISE
+
+    def read(self, vel, ang_vel, wheel_rad, wheelbase):
+        # return zero if not moving
+        if vel == 0 and ang_vel == 0:
+            return (0.0, 0.0)
+        # Get angular velocities of each side
+        omega_r = vel + wheelbase/(2*wheel_rad) * ang_vel
+        omega_l = vel - wheelbase/(2*wheel_rad) * ang_vel
+        # Calculate change of angle in this time step
+        theta_r = omega_r * (1.0/self.freq)
+        theta_l = omega_l * (1.0/self.freq)
+        # Calculate number of ticks for this change
+        ticks_r = theta_r / (self.res * pi/180) + random.gauss(0, self.noise)
+        ticks_l = theta_l / (self.res * pi/180) + random.gauss(0, self.noise)
+        ticks_r = int(floor(ticks_r))
+        ticks_l = int(floor(ticks_l))
+        # Convert back to angle (in radians this time)
+        noisy_theta_r = ticks_r * self.res * pi/180 
+        noisy_theta_l = ticks_l * self.res * pi/180
+        return (noisy_theta_r, noisy_theta_l)
 
 
 class Robot(object):
@@ -129,6 +149,7 @@ class Robot(object):
         self.scanned = False # flag to determine if laser should be redrawn
         self.changed = False # flag to determine if robot should be redrawn
         self.last_scan = None # (pose, ranges) of latest laser scan
+        self.last_odom = None # number of ticks of latest odometry measurement
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
 
@@ -156,23 +177,25 @@ class Robot(object):
         if abs(self.vel) < 1e-5:
             self.vel = 0
         else:
-            self.translate(self.vel * 1.0/d.ODOM_FREQ)
+            self.translate(self.vel * 1.0/self.odometer.freq)
             self.changed = True
         if abs(self.ang_vel) < 1e-5:
             self.ang_vel = 0
         else:
-            self.rotate(self.ang_vel * 1.0/d.ODOM_FREQ)
+            self.rotate(self.ang_vel * 1.0/self.odometer.freq)
             self.changed = True
+        # Return odometry measurement
+        return self.odometer.read(self.vel, self.ang_vel, self.wheel_rad,
+                self.wheelbase)
 
     def scan_laser(self, line_map):
         """Scan the laser and append the resulting ranges and the current pose 
         to the scan history."""
         # update laser pose to match robot pose
         self.laser.pose = self.pose
-        # scan laser and append the current pose and ranges to the scan histroy
-        ranges = self.laser.scan(line_map)
-        self.last_scan = (self.pose, ranges)
+        # scan laser and save it with the robot pose
         self.scanned = True
+        return self.laser.scan(line_map)
 
     def set_width(self, width):
         self.width = width

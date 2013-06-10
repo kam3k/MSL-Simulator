@@ -6,6 +6,5 @@ FEATURES
 - ensure velocities stay within velocity envelope
 
 BUGS
-- bug when a point (instead of a line) is added to the map
 - 360 degree FOV adds a small overlap (one beam?)
 - heading of robot should always be between -pi and pi

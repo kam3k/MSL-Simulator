@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>982</width>
-    <height>857</height>
+    <height>858</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -284,7 +284,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabWidgetPage1">
        <attribute name="title">
@@ -295,6 +295,22 @@
        <attribute name="title">
         <string>Record</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="start_record_button">
+          <property name="text">
+           <string>Start Recording</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="stop_record_button">
+          <property name="text">
+           <string>Stop Recording</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tabWidgetPage3">
        <attribute name="title">
@@ -364,52 +380,6 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="minimumSize">
-                <size>
-                 <width>120</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>120</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Noise</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QSlider" name="odom_noise_slider">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>30</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="invertedAppearance">
-                <bool>false</bool>
-               </property>
-               <property name="invertedControls">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
              <item row="2" column="2">
               <widget class="QSpinBox" name="odom_freq_box">
                <property name="suffix">
@@ -420,22 +390,6 @@
                </property>
                <property name="maximum">
                 <number>30</number>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="2">
-              <widget class="QDoubleSpinBox" name="odom_noise_box">
-               <property name="suffix">
-                <string> deg</string>
-               </property>
-               <property name="minimum">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>3.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
                </property>
               </widget>
              </item>
@@ -485,23 +439,102 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1" colspan="2">
-              <layout class="QHBoxLayout" name="horizontalLayout_2">
-               <item>
-                <widget class="QRadioButton" name="radioButton_2">
-                 <property name="text">
-                  <string>8 bit</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="radioButton">
-                 <property name="text">
-                  <string>16 bit</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+             <item row="1" column="2">
+              <widget class="QDoubleSpinBox" name="odom_res_box">
+               <property name="suffix">
+                <string> deg</string>
+               </property>
+               <property name="minimum">
+                <double>0.050000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>2.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.050000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSlider" name="odom_res_slider">
+               <property name="minimum">
+                <number>5</number>
+               </property>
+               <property name="maximum">
+                <number>200</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="invertedAppearance">
+                <bool>true</bool>
+               </property>
+               <property name="invertedControls">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QDoubleSpinBox" name="odom_noise_box">
+               <property name="suffix">
+                <string> ticks</string>
+               </property>
+               <property name="minimum">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>3.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QSlider" name="odom_noise_slider">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>30</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="invertedAppearance">
+                <bool>false</bool>
+               </property>
+               <property name="invertedControls">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>120</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Noise</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -1039,7 +1072,7 @@
                 <enum>Qt::Horizontal</enum>
                </property>
                <property name="invertedAppearance">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="invertedControls">
                 <bool>false</bool>
