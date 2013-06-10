@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/gui.ui'
 #
-# Created: Thu May 30 16:04:54 2013
+# Created: Mon Jun 10 11:06:29 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_main_window(object):
     def setupUi(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(982, 876)
+        main_window.resize(982, 857)
         main_window.setMinimumSize(QtCore.QSize(0, 0))
         self.centralwidget = QtGui.QWidget(main_window)
         self.centralwidget.setObjectName("centralwidget")
@@ -243,7 +243,7 @@ class Ui_main_window(object):
         self.gridLayout_2 = QtGui.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.robot_wheel_rad_slider = QtGui.QSlider(self.robot_box)
-        self.robot_wheel_rad_slider.setMinimum(10)
+        self.robot_wheel_rad_slider.setMinimum(5)
         self.robot_wheel_rad_slider.setMaximum(50)
         self.robot_wheel_rad_slider.setOrientation(QtCore.Qt.Horizontal)
         self.robot_wheel_rad_slider.setInvertedAppearance(False)
@@ -251,7 +251,7 @@ class Ui_main_window(object):
         self.robot_wheel_rad_slider.setObjectName("robot_wheel_rad_slider")
         self.gridLayout_2.addWidget(self.robot_wheel_rad_slider, 4, 1, 1, 1)
         self.robot_wheelbase_slider = QtGui.QSlider(self.robot_box)
-        self.robot_wheelbase_slider.setMinimum(5)
+        self.robot_wheelbase_slider.setMinimum(2)
         self.robot_wheelbase_slider.setMaximum(20)
         self.robot_wheelbase_slider.setOrientation(QtCore.Qt.Horizontal)
         self.robot_wheelbase_slider.setInvertedAppearance(False)
@@ -286,13 +286,13 @@ class Ui_main_window(object):
         font = QtGui.QFont()
         font.setPointSize(12)
         self.robot_length_slider.setFont(font)
-        self.robot_length_slider.setMinimum(5)
+        self.robot_length_slider.setMinimum(2)
         self.robot_length_slider.setMaximum(20)
         self.robot_length_slider.setOrientation(QtCore.Qt.Horizontal)
         self.robot_length_slider.setObjectName("robot_length_slider")
         self.gridLayout_2.addWidget(self.robot_length_slider, 1, 1, 1, 1)
         self.robot_width_box = QtGui.QDoubleSpinBox(self.robot_box)
-        self.robot_width_box.setMinimum(0.5)
+        self.robot_width_box.setMinimum(0.2)
         self.robot_width_box.setMaximum(2.0)
         self.robot_width_box.setSingleStep(0.1)
         self.robot_width_box.setObjectName("robot_width_box")
@@ -306,7 +306,7 @@ class Ui_main_window(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout_2.addWidget(self.label_2, 3, 0, 1, 1)
         self.robot_width_slider = QtGui.QSlider(self.robot_box)
-        self.robot_width_slider.setMinimum(5)
+        self.robot_width_slider.setMinimum(2)
         self.robot_width_slider.setMaximum(20)
         self.robot_width_slider.setOrientation(QtCore.Qt.Horizontal)
         self.robot_width_slider.setInvertedAppearance(False)
@@ -314,7 +314,7 @@ class Ui_main_window(object):
         self.robot_width_slider.setObjectName("robot_width_slider")
         self.gridLayout_2.addWidget(self.robot_width_slider, 3, 1, 1, 1)
         self.robot_wheel_rad_box = QtGui.QDoubleSpinBox(self.robot_box)
-        self.robot_wheel_rad_box.setMinimum(0.1)
+        self.robot_wheel_rad_box.setMinimum(0.05)
         self.robot_wheel_rad_box.setMaximum(0.5)
         self.robot_wheel_rad_box.setSingleStep(0.01)
         self.robot_wheel_rad_box.setObjectName("robot_wheel_rad_box")
@@ -346,7 +346,7 @@ class Ui_main_window(object):
         self.label_6.setObjectName("label_6")
         self.gridLayout_2.addWidget(self.label_6, 7, 0, 1, 1)
         self.robot_length_box = QtGui.QDoubleSpinBox(self.robot_box)
-        self.robot_length_box.setMinimum(0.5)
+        self.robot_length_box.setMinimum(0.2)
         self.robot_length_box.setMaximum(2.0)
         self.robot_length_box.setSingleStep(0.1)
         self.robot_length_box.setObjectName("robot_length_box")
@@ -365,7 +365,7 @@ class Ui_main_window(object):
         self.robot_ang_vel_slider.setObjectName("robot_ang_vel_slider")
         self.gridLayout_2.addWidget(self.robot_ang_vel_slider, 7, 1, 1, 1)
         self.robot_wheelbase_box = QtGui.QDoubleSpinBox(self.robot_box)
-        self.robot_wheelbase_box.setMinimum(0.5)
+        self.robot_wheelbase_box.setMinimum(0.2)
         self.robot_wheelbase_box.setMaximum(2.0)
         self.robot_wheelbase_box.setSingleStep(0.1)
         self.robot_wheelbase_box.setObjectName("robot_wheelbase_box")
@@ -595,7 +595,7 @@ class Ui_main_window(object):
         self.label_11.setText(QtGui.QApplication.translate("main_window", "Range", None, QtGui.QApplication.UnicodeUTF8))
         self.laser_noise_box.setSuffix(QtGui.QApplication.translate("main_window", " cm", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setText(QtGui.QApplication.translate("main_window", "FOV", None, QtGui.QApplication.UnicodeUTF8))
-        self.laser_res_box.setSuffix(QtGui.QApplication.translate("main_window", " def", None, QtGui.QApplication.UnicodeUTF8))
+        self.laser_res_box.setSuffix(QtGui.QApplication.translate("main_window", " deg", None, QtGui.QApplication.UnicodeUTF8))
         self.laser_range_box.setSuffix(QtGui.QApplication.translate("main_window", " m", None, QtGui.QApplication.UnicodeUTF8))
         self.laser_fov_box.setSuffix(QtGui.QApplication.translate("main_window", " deg", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("main_window", "Resolution", None, QtGui.QApplication.UnicodeUTF8))

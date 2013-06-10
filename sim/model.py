@@ -126,9 +126,8 @@ class Robot(object):
         self.max_ang_vel = d.ROBOT_MAX_ANG_VEL * pi/180
         self.vel = 0.0
         self.ang_vel = 0.0
-        self.moved = False # flag to determine if robot should be moved
         self.scanned = False # flag to determine if laser should be redrawn
-        self.sized = False # flag to determine if robot should be redrawn
+        self.changed = False # flag to determine if robot should be redrawn
         self.last_scan = None # (pose, ranges) of latest laser scan
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
@@ -145,7 +144,11 @@ class Robot(object):
 
     def rotate(self, angle):
         """Update the heading of the robot after rotating it a set angle."""
-        self.heading = self.heading + angle
+        self.heading += angle
+        # make sure heading is between -pi and pi
+        # self.heading = self.heading % 2*pi
+        # if self.heading > pi:
+        #     self.heading -= 2*pi
 
     def update_pose(self):
         """Update the pose of the robot based on its velocity and odometry
@@ -154,12 +157,12 @@ class Robot(object):
             self.vel = 0
         else:
             self.translate(self.vel * 1.0/d.ODOM_FREQ)
-            self.moved = True
+            self.changed = True
         if abs(self.ang_vel) < 1e-5:
             self.ang_vel = 0
         else:
             self.rotate(self.ang_vel * 1.0/d.ODOM_FREQ)
-            self.moved = True
+            self.changed = True
 
     def scan_laser(self, line_map):
         """Scan the laser and append the resulting ranges and the current pose 
@@ -173,11 +176,11 @@ class Robot(object):
 
     def set_width(self, width):
         self.width = width
-        self.sized = True
+        self.changed = True
 
     def set_length(self, length):
         self.length = length
-        self.sized = True
+        self.changed = True
 
     def set_wheelbase(self, wheelbase):
         self.wheelbase = wheelbase

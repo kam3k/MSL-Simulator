@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>982</width>
-    <height>876</height>
+    <height>857</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -286,17 +286,17 @@
       <property name="currentIndex">
        <number>2</number>
       </property>
-      <widget class="QWidget" name="tabWidgetPage1" native="true">
+      <widget class="QWidget" name="tabWidgetPage1">
        <attribute name="title">
         <string>Map</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tabWidgetPage2" native="true">
+      <widget class="QWidget" name="tabWidgetPage2">
        <attribute name="title">
         <string>Record</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tabWidgetPage3" native="true">
+      <widget class="QWidget" name="tabWidgetPage3">
        <attribute name="title">
         <string>Settings</string>
        </attribute>
@@ -527,7 +527,7 @@
              <item row="4" column="1">
               <widget class="QSlider" name="robot_wheel_rad_slider">
                <property name="minimum">
-                <number>10</number>
+                <number>5</number>
                </property>
                <property name="maximum">
                 <number>50</number>
@@ -546,7 +546,7 @@
              <item row="5" column="1">
               <widget class="QSlider" name="robot_wheelbase_slider">
                <property name="minimum">
-                <number>5</number>
+                <number>2</number>
                </property>
                <property name="maximum">
                 <number>20</number>
@@ -631,7 +631,7 @@
                 </font>
                </property>
                <property name="minimum">
-                <number>5</number>
+                <number>2</number>
                </property>
                <property name="maximum">
                 <number>20</number>
@@ -647,7 +647,7 @@
                 <string> m</string>
                </property>
                <property name="minimum">
-                <double>0.500000000000000</double>
+                <double>0.200000000000000</double>
                </property>
                <property name="maximum">
                 <double>2.000000000000000</double>
@@ -681,7 +681,7 @@
              <item row="3" column="1">
               <widget class="QSlider" name="robot_width_slider">
                <property name="minimum">
-                <number>5</number>
+                <number>2</number>
                </property>
                <property name="maximum">
                 <number>20</number>
@@ -703,7 +703,7 @@
                 <string> m</string>
                </property>
                <property name="minimum">
-                <double>0.100000000000000</double>
+                <double>0.050000000000000</double>
                </property>
                <property name="maximum">
                 <double>0.500000000000000</double>
@@ -791,7 +791,7 @@
                 <string> m</string>
                </property>
                <property name="minimum">
-                <double>0.500000000000000</double>
+                <double>0.200000000000000</double>
                </property>
                <property name="maximum">
                 <double>2.000000000000000</double>
@@ -839,7 +839,7 @@
                 <string> m</string>
                </property>
                <property name="minimum">
-                <double>0.500000000000000</double>
+                <double>0.200000000000000</double>
                </property>
                <property name="maximum">
                 <double>2.000000000000000</double>
@@ -988,7 +988,7 @@
              <item row="5" column="2">
               <widget class="QDoubleSpinBox" name="laser_res_box">
                <property name="suffix">
-                <string> def</string>
+                <string> deg</string>
                </property>
                <property name="minimum">
                 <double>0.200000000000000</double>
