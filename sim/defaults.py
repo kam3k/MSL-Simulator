@@ -32,7 +32,7 @@ HOK_04_FREQ = 10 # [Hz]
 
 # Default custom
 ODOM_RES = 0.5 # [deg]
-ODOM_FREQ = 5 # how often the odometry is updated [Hz]
+ODOM_FREQ = 10 # how often the odometry is updated [Hz]
 ODOM_NOISE = 0.5 # ticks
 
 # ------------------------------------------------------------------------------

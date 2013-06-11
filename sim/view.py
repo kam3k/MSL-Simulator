@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/gui.ui'
 #
-# Created: Tue Jun 11 09:11:28 2013
+# Created: Tue Jun 11 10:41:11 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -20,6 +20,7 @@ class Ui_main_window(object):
         self.gridLayout.setObjectName("gridLayout")
         self.graphics_view = PlotGraphicsView(self.centralwidget)
         self.graphics_view.setMinimumSize(QtCore.QSize(0, 400))
+        self.graphics_view.setLineWidth(2)
         self.graphics_view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.graphics_view.setSceneRect(QtCore.QRectF(0.0, 0.0, 10.0, 10.0))
         self.graphics_view.setObjectName("graphics_view")
@@ -127,6 +128,8 @@ class Ui_main_window(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.graphics_view_zoom.sizePolicy().hasHeightForWidth())
         self.graphics_view_zoom.setSizePolicy(sizePolicy)
+        self.graphics_view_zoom.setFrameShadow(QtGui.QFrame.Sunken)
+        self.graphics_view_zoom.setLineWidth(2)
         self.graphics_view_zoom.setObjectName("graphics_view_zoom")
         self.gridLayout.addWidget(self.graphics_view_zoom, 0, 1, 2, 1)
         self.tabWidget = QtGui.QTabWidget(self.centralwidget)
@@ -143,12 +146,23 @@ class Ui_main_window(object):
         self.tabWidgetPage2.setObjectName("tabWidgetPage2")
         self.gridLayout_10 = QtGui.QGridLayout(self.tabWidgetPage2)
         self.gridLayout_10.setObjectName("gridLayout_10")
-        self.start_record_button = QtGui.QPushButton(self.tabWidgetPage2)
-        self.start_record_button.setObjectName("start_record_button")
-        self.gridLayout_10.addWidget(self.start_record_button, 0, 0, 1, 1)
-        self.stop_record_button = QtGui.QPushButton(self.tabWidgetPage2)
-        self.stop_record_button.setObjectName("stop_record_button")
-        self.gridLayout_10.addWidget(self.stop_record_button, 1, 0, 1, 1)
+        self.toggle_record_button = QtGui.QPushButton(self.tabWidgetPage2)
+        self.toggle_record_button.setMinimumSize(QtCore.QSize(50, 50))
+        self.toggle_record_button.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.toggle_record_button.setObjectName("toggle_record_button")
+        self.gridLayout_10.addWidget(self.toggle_record_button, 0, 0, 1, 1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem, 2, 0, 1, 1)
+        self.record_timer_display = QtGui.QLabel(self.tabWidgetPage2)
+        font = QtGui.QFont()
+        font.setFamily("Courier")
+        font.setPointSize(15)
+        font.setWeight(50)
+        font.setBold(False)
+        self.record_timer_display.setFont(font)
+        self.record_timer_display.setAlignment(QtCore.Qt.AlignCenter)
+        self.record_timer_display.setObjectName("record_timer_display")
+        self.gridLayout_10.addWidget(self.record_timer_display, 0, 1, 1, 1)
         self.tabWidget.addTab(self.tabWidgetPage2, "")
         self.tabWidgetPage3 = QtGui.QWidget()
         self.tabWidgetPage3.setObjectName("tabWidgetPage3")
@@ -564,7 +578,7 @@ class Ui_main_window(object):
         main_window.setStatusBar(self.statusbar)
 
         self.retranslateUi(main_window)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def retranslateUi(self, main_window):
@@ -580,8 +594,8 @@ class Ui_main_window(object):
         self.label_21.setText(QtGui.QApplication.translate("main_window", "Ang. Vel. Increment", None, QtGui.QApplication.UnicodeUTF8))
         self.label_20.setText(QtGui.QApplication.translate("main_window", "Velocity Increment", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage1), QtGui.QApplication.translate("main_window", "Map", None, QtGui.QApplication.UnicodeUTF8))
-        self.start_record_button.setText(QtGui.QApplication.translate("main_window", "Start Recording", None, QtGui.QApplication.UnicodeUTF8))
-        self.stop_record_button.setText(QtGui.QApplication.translate("main_window", "Stop Recording", None, QtGui.QApplication.UnicodeUTF8))
+        self.toggle_record_button.setText(QtGui.QApplication.translate("main_window", "Start Recording", None, QtGui.QApplication.UnicodeUTF8))
+        self.record_timer_display.setText(QtGui.QApplication.translate("main_window", "Elapsed time: 0.00 s", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage2), QtGui.QApplication.translate("main_window", "Record", None, QtGui.QApplication.UnicodeUTF8))
         self.load_settings_button.setText(QtGui.QApplication.translate("main_window", "Load settings...", None, QtGui.QApplication.UnicodeUTF8))
         self.save_settings_button.setText(QtGui.QApplication.translate("main_window", "Save settings...", None, QtGui.QApplication.UnicodeUTF8))

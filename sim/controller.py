@@ -1,5 +1,4 @@
 # Python imports
-import sys
 import math
 import time
 
@@ -36,6 +35,10 @@ class MainWindow(QtGui.QMainWindow):
         self.label_timer = QtCore.QTimer()
         self.label_timer.timeout.connect(self.update_info_labels)
         self.label_timer.start()
+        # Establish a timer for recordings
+        self.record_timer = QtCore.QTimer()
+        self.record_timer.setInterval(100)
+        self.record_timer.timeout.connect(self.update_record_timer)
         # Start timers that update the plot and the model
         self.ui.graphics_view.start_timers()
 
@@ -58,6 +61,20 @@ class MainWindow(QtGui.QMainWindow):
                 self.robot.y, 180/math.pi*self.robot.heading))
         self.ui.velocity_label.setText("%0.2f m/s" % self.robot.vel)
         self.ui.ang_vel_label.setText("%d deg/s" % int(180/math.pi*self.robot.ang_vel))
+
+    def update_record_timer(self):
+        elapsed_time = time.time() - self.ui.graphics_view.record_start_time
+        self.ui.record_timer_display.setText(
+                'Elapsed time: %0.1f s' % elapsed_time)
+
+    def toggle_recording(self):
+        self.ui.graphics_view.toggle_recording()
+        if self.ui.graphics_view.recording:
+            self.record_timer.start()
+            self.ui.toggle_record_button.setText('Stop Recording')
+        else:
+            self.record_timer.stop()
+            self.ui.toggle_record_button.setText('Start Recording')
 
     def toggle_enable_laser_settings(self, b):
         self.ui.laser_range_slider.setEnabled(b)
@@ -163,10 +180,7 @@ class MainWindow(QtGui.QMainWindow):
         # -----
         self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
         self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
-        self.ui.start_record_button.clicked.connect(
-                self.ui.graphics_view.start_recording)
-        self.ui.stop_record_button.clicked.connect(
-                self.ui.graphics_view.stop_recording)
+        self.ui.toggle_record_button.clicked.connect(self.toggle_recording)
 
     def settings_to_default(self):
         # -----
@@ -276,7 +290,7 @@ class MainWindow(QtGui.QMainWindow):
     def odom_noise_changed(self, value):
         self.ui.odom_noise_slider.setValue(int(10*value))
         self.ui.odom_noise_box.setValue(value)
-        self.robot.odometer.freq = value
+        self.robot.odometer.noise = value
 
     # -----
     # LASER
@@ -475,29 +489,29 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         ranges = self.robot.scan_laser(self.line_map)
         self.latest_laser_scan = ranges
         if self.recording:
-            elapsed_time = time.time() - self.record_timer
+            elapsed_time = time.time() - self.record_start_time
             self.laser_history.append(('ranges', elapsed_time, ranges))
 
     def odometry_update(self):
         odom = self.robot.update_pose()
         if self.recording:
-            elapsed_time = time.time() - self.record_timer
+            elapsed_time = time.time() - self.record_start_time
             self.odom_history.append(('odom', elapsed_time, odom))
 
-    def start_recording(self):
-        self.laser_history = []
-        self.odom_history = []
-        self.record_timer = time.time()
-        self.recording = True
-
-    def stop_recording(self):
-        self.recording = False
-        self.write_record_file()
+    def toggle_recording(self):
+        if not self.recording:
+            self.laser_history = []
+            self.odom_history = []
+            self.record_start_time = time.time()
+            self.recording = True
+        else:
+            self.recording = False
+            self.write_record_file()
 
     def write_record_file(self):
         history = self.odom_history + self.laser_history
         chrono_hist = sorted(history, key = lambda history: history[1])
-        with open('record_file.rec', 'w+') as f:
+        with open('data/record_file.txt', 'w+') as f:
             for kind, t, data in chrono_hist:
                 if kind == 'odom':
                     f.write('%s %0.4f %0.5f %0.5f\n' % (kind, t, data[0],
