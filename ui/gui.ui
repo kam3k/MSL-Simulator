@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>982</width>
-    <height>858</height>
+    <height>895</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -293,7 +293,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabWidgetPage1">
        <attribute name="title">
@@ -1023,7 +1023,7 @@
                </property>
               </widget>
              </item>
-             <item row="7" column="2">
+             <item row="8" column="2">
               <widget class="QSpinBox" name="laser_noise_box">
                <property name="suffix">
                 <string> cm</string>
@@ -1033,6 +1033,22 @@
                </property>
                <property name="maximum">
                 <number>15</number>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QDoubleSpinBox" name="laser_res_box">
+               <property name="suffix">
+                <string> deg</string>
+               </property>
+               <property name="minimum">
+                <double>0.200000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>5.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
                </property>
               </widget>
              </item>
@@ -1056,26 +1072,10 @@
                 </font>
                </property>
                <property name="text">
-                <string>FOV</string>
+                <string>Min bearing</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="2">
-              <widget class="QDoubleSpinBox" name="laser_res_box">
-               <property name="suffix">
-                <string> deg</string>
-               </property>
-               <property name="minimum">
-                <double>0.200000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>5.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
                </property>
               </widget>
              </item>
@@ -1093,19 +1093,22 @@
               </widget>
              </item>
              <item row="4" column="2">
-              <widget class="QSpinBox" name="laser_fov_box">
+              <widget class="QSpinBox" name="laser_min_bear_box">
                <property name="suffix">
                 <string> deg</string>
                </property>
                <property name="minimum">
-                <number>10</number>
+                <number>-180</number>
                </property>
                <property name="maximum">
-                <number>360</number>
+                <number>180</number>
+               </property>
+               <property name="value">
+                <number>-90</number>
                </property>
               </widget>
              </item>
-             <item row="5" column="1">
+             <item row="6" column="1">
               <widget class="QSlider" name="laser_res_slider">
                <property name="minimum">
                 <number>2</number>
@@ -1124,7 +1127,7 @@
                </property>
               </widget>
              </item>
-             <item row="7" column="1">
+             <item row="8" column="1">
               <widget class="QSlider" name="laser_noise_slider">
                <property name="minimum">
                 <number>1</number>
@@ -1143,7 +1146,7 @@
                </property>
               </widget>
              </item>
-             <item row="5" column="0">
+             <item row="6" column="0">
               <widget class="QLabel" name="label_12">
                <property name="minimumSize">
                 <size>
@@ -1170,7 +1173,7 @@
                </property>
               </widget>
              </item>
-             <item row="6" column="2">
+             <item row="7" column="2">
               <widget class="QSpinBox" name="laser_freq_box">
                <property name="suffix">
                 <string> Hz</string>
@@ -1183,13 +1186,29 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="1">
-              <widget class="QSlider" name="laser_fov_slider">
+             <item row="2" column="1">
+              <widget class="QSlider" name="laser_range_slider">
                <property name="minimum">
-                <number>10</number>
+                <number>1</number>
                </property>
                <property name="maximum">
-                <number>360</number>
+                <number>25</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QSlider" name="laser_min_bear_slider">
+               <property name="minimum">
+                <number>-180</number>
+               </property>
+               <property name="maximum">
+                <number>180</number>
+               </property>
+               <property name="value">
+                <number>-90</number>
                </property>
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -1202,7 +1221,7 @@
                </property>
               </widget>
              </item>
-             <item row="7" column="0">
+             <item row="8" column="0">
               <widget class="QLabel" name="label_14">
                <property name="minimumSize">
                 <size>
@@ -1229,20 +1248,7 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
-              <widget class="QSlider" name="laser_range_slider">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>25</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="0">
+             <item row="7" column="0">
               <widget class="QLabel" name="label_13">
                <property name="minimumSize">
                 <size>
@@ -1269,7 +1275,10 @@
                </property>
               </widget>
              </item>
-             <item row="6" column="1">
+             <item row="1" column="1" colspan="2">
+              <widget class="QComboBox" name="laser_combo"/>
+             </item>
+             <item row="7" column="1">
               <widget class="QSlider" name="laser_freq_slider">
                <property name="minimum">
                 <number>1</number>
@@ -1287,9 +1296,6 @@
                 <bool>false</bool>
                </property>
               </widget>
-             </item>
-             <item row="1" column="1" colspan="2">
-              <widget class="QComboBox" name="laser_combo"/>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_16">
@@ -1315,6 +1321,71 @@
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_22">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>120</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Max bearing</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QSlider" name="laser_max_bear_slider">
+               <property name="minimum">
+                <number>-180</number>
+               </property>
+               <property name="maximum">
+                <number>180</number>
+               </property>
+               <property name="value">
+                <number>90</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="invertedAppearance">
+                <bool>false</bool>
+               </property>
+               <property name="invertedControls">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QSpinBox" name="laser_max_bear_box">
+               <property name="suffix">
+                <string> deg</string>
+               </property>
+               <property name="minimum">
+                <number>-180</number>
+               </property>
+               <property name="maximum">
+                <number>180</number>
+               </property>
+               <property name="value">
+                <number>90</number>
                </property>
               </widget>
              </item>

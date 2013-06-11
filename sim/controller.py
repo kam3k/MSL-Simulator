@@ -79,8 +79,10 @@ class MainWindow(QtGui.QMainWindow):
     def toggle_enable_laser_settings(self, b):
         self.ui.laser_range_slider.setEnabled(b)
         self.ui.laser_range_box.setEnabled(b)
-        self.ui.laser_fov_slider.setEnabled(b)
-        self.ui.laser_fov_box.setEnabled(b)
+        self.ui.laser_min_bear_slider.setEnabled(b)
+        self.ui.laser_max_bear_slider.setEnabled(b)
+        self.ui.laser_min_bear_box.setEnabled(b)
+        self.ui.laser_max_bear_box.setEnabled(b)
         self.ui.laser_res_slider.setEnabled(b)
         self.ui.laser_res_box.setEnabled(b)
         self.ui.laser_freq_slider.setEnabled(b)
@@ -158,10 +160,14 @@ class MainWindow(QtGui.QMainWindow):
                 self.laser_range_changed)
         self.ui.laser_range_box.valueChanged.connect(
                 self.laser_range_changed)
-        self.ui.laser_fov_slider.valueChanged.connect(
-                self.laser_fov_changed)
-        self.ui.laser_fov_box.valueChanged.connect(
-                self.laser_fov_changed)
+        self.ui.laser_min_bear_slider.valueChanged.connect(
+                self.laser_min_bear_changed)
+        self.ui.laser_min_bear_box.valueChanged.connect(
+                self.laser_min_bear_changed)
+        self.ui.laser_max_bear_slider.valueChanged.connect(
+                self.laser_max_bear_changed)
+        self.ui.laser_max_bear_box.valueChanged.connect(
+                self.laser_max_bear_changed)
         self.ui.laser_res_slider.valueChanged.connect(
                 lambda: self.laser_res_changed(self.ui.laser_res_slider.value()/10.0))
         self.ui.laser_res_box.valueChanged.connect(
@@ -204,7 +210,8 @@ class MainWindow(QtGui.QMainWindow):
         # LASER
         # -----
         self.laser_range_changed(d.LASER_RANGE)
-        self.laser_fov_changed(d.LASER_MAX_ANGLE - d.LASER_MIN_ANGLE)
+        self.laser_min_bear_changed(d.LASER_MIN_ANGLE)
+        self.laser_max_bear_changed(d.LASER_MAX_ANGLE)
         self.laser_res_changed(d.LASER_RES)
         self.laser_freq_changed(d.LASER_FREQ)
         self.laser_noise_changed(d.LASER_NOISE)
@@ -300,16 +307,16 @@ class MainWindow(QtGui.QMainWindow):
             self.toggle_enable_laser_settings(True)
         elif value == 1: # SICK LMS111
             self.laser_range_changed(d.SICK_111_RANGE)
-            self.laser_fov_changed(
-                    (d.SICK_111_MAX_ANGLE - d.SICK_111_MIN_ANGLE))
+            self.laser_min_bear_changed(d.SICK_111_MIN_ANGLE)
+            self.laser_max_bear_changed(d.SICK_111_MAX_ANGLE)
             self.laser_res_changed(d.SICK_111_RES)
             self.laser_freq_changed(d.SICK_111_FREQ)
             self.laser_noise_changed(d.SICK_111_NOISE)
             self.toggle_enable_laser_settings(False)
         elif value == 2: # Hokuyo URG-04LX
             self.laser_range_changed(d.HOK_04_RANGE)
-            self.laser_fov_changed(
-                    (d.HOK_04_MAX_ANGLE - d.HOK_04_MIN_ANGLE))
+            self.laser_min_bear_changed(d.HOK_04_MIN_ANGLE)
+            self.laser_max_bear_changed(d.HOK_04_MAX_ANGLE)
             self.laser_res_changed(d.HOK_04_RES)
             self.laser_freq_changed(d.HOK_04_FREQ)
             self.laser_noise_changed(d.HOK_04_NOISE)
@@ -320,11 +327,23 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.laser_range_slider.setValue(value)
         self.robot.laser.range = value
 
-    def laser_fov_changed(self, value):
-        self.ui.laser_fov_box.setValue(value)
-        self.ui.laser_fov_slider.setValue(value)
-        self.robot.laser.min_angle = -value/2.0
-        self.robot.laser.max_angle = value/2.0
+    def laser_min_bear_changed(self, value):
+        self.ui.laser_min_bear_box.setValue(value)
+        self.ui.laser_min_bear_slider.setValue(value)
+        max_value = self.ui.laser_max_bear_slider.value()
+        if value < max_value:
+            self.robot.laser.min_angle = value
+        else:
+            self.robot.laser.max_angle = value
+
+    def laser_max_bear_changed(self, value):
+        self.ui.laser_max_bear_box.setValue(value)
+        self.ui.laser_max_bear_slider.setValue(value)
+        min_value = self.ui.laser_min_bear_slider.value()
+        if value > min_value:
+            self.robot.laser.max_angle = value
+        else:
+            self.robot.laser.min_angle = value
 
     def laser_res_changed(self, value):
         self.ui.laser_res_slider.setValue(int(10*value))
