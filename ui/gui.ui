@@ -284,7 +284,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabWidgetPage1">
        <attribute name="title">
@@ -389,7 +389,7 @@
                 <number>1</number>
                </property>
                <property name="maximum">
-                <number>30</number>
+                <number>20</number>
                </property>
               </widget>
              </item>
@@ -426,7 +426,7 @@
                 <number>1</number>
                </property>
                <property name="maximum">
-                <number>30</number>
+                <number>20</number>
                </property>
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -462,6 +462,9 @@
                </property>
                <property name="maximum">
                 <number>200</number>
+               </property>
+               <property name="singleStep">
+                <number>5</number>
                </property>
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>

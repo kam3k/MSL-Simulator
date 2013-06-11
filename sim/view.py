@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/gui.ui'
 #
-# Created: Mon Jun 10 16:35:04 2013
+# Created: Tue Jun 11 09:11:28 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -186,7 +186,7 @@ class Ui_main_window(object):
         self.gridLayout_6.addWidget(self.label_9, 2, 0, 1, 1)
         self.odom_freq_box = QtGui.QSpinBox(self.odom_box)
         self.odom_freq_box.setMinimum(1)
-        self.odom_freq_box.setMaximum(30)
+        self.odom_freq_box.setMaximum(20)
         self.odom_freq_box.setObjectName("odom_freq_box")
         self.gridLayout_6.addWidget(self.odom_freq_box, 2, 2, 1, 1)
         self.label_7 = QtGui.QLabel(self.odom_box)
@@ -200,7 +200,7 @@ class Ui_main_window(object):
         self.gridLayout_6.addWidget(self.label_7, 1, 0, 1, 1)
         self.odom_freq_slider = QtGui.QSlider(self.odom_box)
         self.odom_freq_slider.setMinimum(1)
-        self.odom_freq_slider.setMaximum(30)
+        self.odom_freq_slider.setMaximum(20)
         self.odom_freq_slider.setOrientation(QtCore.Qt.Horizontal)
         self.odom_freq_slider.setInvertedAppearance(False)
         self.odom_freq_slider.setInvertedControls(False)
@@ -215,6 +215,7 @@ class Ui_main_window(object):
         self.odom_res_slider = QtGui.QSlider(self.odom_box)
         self.odom_res_slider.setMinimum(5)
         self.odom_res_slider.setMaximum(200)
+        self.odom_res_slider.setSingleStep(5)
         self.odom_res_slider.setOrientation(QtCore.Qt.Horizontal)
         self.odom_res_slider.setInvertedAppearance(True)
         self.odom_res_slider.setInvertedControls(False)
@@ -563,7 +564,7 @@ class Ui_main_window(object):
         main_window.setStatusBar(self.statusbar)
 
         self.retranslateUi(main_window)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def retranslateUi(self, main_window):

@@ -122,6 +122,16 @@ class MainWindow(QtGui.QMainWindow):
         # --------
         # ODOMETER
         # --------
+        self.ui.odom_res_slider.valueChanged.connect(
+                lambda: self.odom_res_changed(
+                    self.ui.odom_res_slider.value()/100.0))
+        self.ui.odom_res_box.valueChanged.connect(self.odom_res_changed)
+        self.ui.odom_freq_slider.valueChanged.connect(self.odom_freq_changed)
+        self.ui.odom_freq_box.valueChanged.connect(self.odom_freq_changed)
+        self.ui.odom_noise_slider.valueChanged.connect(
+                lambda: self.odom_noise_changed(
+                    self.ui.odom_noise_slider.value()/10.0))
+        self.ui.odom_noise_box.valueChanged.connect(self.odom_noise_changed)
 
         # -----
         # LASER
@@ -172,6 +182,9 @@ class MainWindow(QtGui.QMainWindow):
         # --------
         # ODOMETER
         # --------
+        self.odom_res_changed(d.ODOM_RES)
+        self.odom_freq_changed(d.ODOM_FREQ)
+        self.odom_noise_changed(d.ODOM_NOISE)
 
         # -----
         # LASER
@@ -248,6 +261,22 @@ class MainWindow(QtGui.QMainWindow):
     # --------
     # ODOMETER
     # --------
+    def odom_res_changed(self, value):
+        self.ui.odom_res_slider.blockSignals(True)
+        self.ui.odom_res_slider.setValue(int(100*value))
+        self.ui.odom_res_slider.blockSignals(False)
+        self.ui.odom_res_box.setValue(value)
+        self.robot.odometer.res = value
+
+    def odom_freq_changed(self, value):
+        self.ui.odom_freq_slider.setValue(value)
+        self.ui.odom_freq_box.setValue(value)
+        self.robot.odometer.freq = value
+
+    def odom_noise_changed(self, value):
+        self.ui.odom_noise_slider.setValue(int(10*value))
+        self.ui.odom_noise_box.setValue(value)
+        self.robot.odometer.freq = value
 
     # -----
     # LASER
