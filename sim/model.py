@@ -175,9 +175,9 @@ class Robot(object):
         """Update the heading of the robot after rotating it a set angle."""
         self.heading += angle
         # make sure heading is between -pi and pi
-        # self.heading = self.heading % 2*pi
-        # if self.heading > pi:
-        #     self.heading -= 2*pi
+        self.heading = self.heading % (2*pi)
+        if self.heading > pi:
+            self.heading -= 2*pi
 
     def update_pose(self):
         """Update the pose of the robot based on its velocity and odometry

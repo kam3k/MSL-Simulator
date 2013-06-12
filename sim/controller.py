@@ -462,12 +462,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.parent = parent
         self.plot_freq = d.PLOT_FREQ
         self.line_item = None # current line user is drawing
-        self.scale(20, -20)
+        self.zoom_scale = 20
+        self.scale(self.zoom_scale, -self.zoom_scale)
         self.set_colours()
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
         self.setSceneRect(-d.MAP_WIDTH/2.0, -d.MAP_HEIGHT/2.0, d.MAP_WIDTH,
                 d.MAP_HEIGHT)
+        self.draw_scale()
         # Containers
         self.line_map = [] # line properties 
         self.line_item_map = [] # line graphic items
@@ -484,6 +486,20 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     # SETUP METHODS
     # --------------------------------------------------------------------------
+    def draw_scale(self):
+        scale_line_horiz = QtGui.QGraphicsLineItem(-3.8, 16.5, -0.8, 16.5)
+        scale_line_vert = QtGui.QGraphicsLineItem(-3.8, 16.5, -3.8, 13.5)
+        self.scene().addItem(scale_line_horiz)
+        self.scene().addItem(scale_line_vert)
+        font = QtGui.QFont('Monospace', pointSize=12)
+        text_horiz = self.scene().addText('3 m', font=font)
+        text_vert = self.scene().addText('3 m', font=font)
+        text_horiz.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
+        text_vert.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
+        text_horiz.setPos(-3.1, 17.4)
+        text_vert.rotate(-90)
+        text_vert.setPos(-4.7, 14.4)
+
     def initialiseRobot(self):
         """Draws the robot in the scene."""
         self.rect = self.scene().addRect(self.robot.x - self.robot.length/2.0,
@@ -519,14 +535,16 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def mouseMoveEvent(self, event):
         """Draws a line between the start and the current position of the 
         cursor."""
-        if self.drawing_line:
-            end = QtCore.QPointF(self.mapToScene(event.pos()))
-            self.line_item.setLine(QtCore.QLineF(self.start, end))
-        else:
-            end = QtCore.QPointF(self.mapToScene(event.pos()))
-            self.line_item = QtGui.QGraphicsLineItem(QtCore.QLineF(self.start, end))
-            self.scene().addItem(self.line_item)
-            self.drawing_line = True
+        if event.buttons() == QtCore.Qt.LeftButton:
+            if self.drawing_line:
+                end = QtCore.QPointF(self.mapToScene(event.pos()))
+                self.line_item.setLine(QtCore.QLineF(self.start, end))
+            else:
+                end = QtCore.QPointF(self.mapToScene(event.pos()))
+                self.line_item = QtGui.QGraphicsLineItem(
+                        QtCore.QLineF(self.start, end))
+                self.scene().addItem(self.line_item)
+                self.drawing_line = True
 
     def mouseReleaseEvent(self, event):
         """Draws a line from the recorded click coordinates and the position of 
