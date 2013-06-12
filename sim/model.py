@@ -7,29 +7,6 @@ from math import sin, cos, pi, sqrt, floor
 import sim.defaults as d
 
 
-def find_intersection(line_1, line_2):
-    """Finds the intersection point (x, y) of two infinitely long lines. The 
-    lines input to this function are dictionaries with keys a, b, and c that
-    describe the line in the form ax + by = c."""
-    det = line_1['a'] * line_2['b'] - line_2['a'] * line_1['b']
-    # Lines are parallel if the determinant is zero
-    if det == 0:
-        return None
-    x = (line_2['b'] * line_1['c'] - line_1['b'] * line_2['c']) / float(det)
-    y = (line_1['a'] * line_2['c'] - line_2['a'] * line_1['c']) / float(det)
-    return (x, y)
-
-def validate_intersection(line, point):
-    """Determines whether or not a point that is known to be on a line is on a 
-    particular segment of that line. The line dictionary has the endpoints of
-    the line segment (keys x_1, y_1, x_2, and y_2)."""
-    x, y = point
-    if (min(line['x_1'], line['x_2']) <= x <= max(line['x_1'], line['x_2']) and
-        min(line['y_1'], line['y_2']) <= y <= max(line['y_1'], line['y_2'])):
-        return True
-    else:
-        return False
-
 def dist_between_points(point_1, point_2):
     """Returns the absolute distance between two points."""
     x_1, y_1 = point_1
@@ -41,6 +18,18 @@ def dist_point_to_line(line, point):
     x, y = point
     return ( (line['a'] * x + line['b'] * y - line['c']) / 
             sqrt(line['a']**2 + line['b']**2))
+
+def find_intersection(line_1, line_2):
+    """Finds the intersection point (x, y) of two infinitely long lines. The 
+    lines input to this function are dictionaries with keys a, b, and c that
+    describe the line in the form ax + by = c."""
+    det = line_1['a'] * line_2['b'] - line_2['a'] * line_1['b']
+    # Lines are parallel if the determinant is zero
+    if det == 0:
+        return None
+    x = (line_2['b'] * line_1['c'] - line_1['b'] * line_2['c']) / float(det)
+    y = (line_1['a'] * line_2['c'] - line_2['a'] * line_1['c']) / float(det)
+    return (x, y)
 
 def get_line_dict(x_1, y_1, x_2, y_2):
     """Returns a dictionary with the line's endpoints, as well as its linear
@@ -54,6 +43,17 @@ def get_line_dict(x_1, y_1, x_2, y_2):
                  'c': (y_2 - y_1) * x_1 + (x_1 - x_2) * y_1}
     return line_dict
 
+def validate_intersection(line, point):
+    """Determines whether or not a point that is known to be on a line is on a 
+    particular segment of that line. The line dictionary has the endpoints of
+    the line segment (keys x_1, y_1, x_2, and y_2)."""
+    x, y = point
+    if (min(line['x_1'], line['x_2']) <= x <= max(line['x_1'], line['x_2']) and
+        min(line['y_1'], line['y_2']) <= y <= max(line['y_1'], line['y_2'])):
+        return True
+    else:
+        return False
+
 
 class Laser(object):
     def __init__(self, pose):
@@ -66,8 +66,9 @@ class Laser(object):
         self.freq = d.LASER_FREQ
 
     def __get_laser_beams(self):
-        """Given the pose of the robot, returns a list of line dictionaries. Each
-        dictionary contains information about a single beam in the laser scan."""
+        """Given the pose of the robot, returns a list of line dictionaries. 
+        Each dictionary contains information about a single beam in the laser 
+        scan."""
         x, y, theta = self.pose
         laser_beams = []
         for beta in linspace(self.min_angle, self.max_angle, 
@@ -87,7 +88,8 @@ class Laser(object):
             r_min = 999
             for line in line_map:
                 # skip line if it is entirely outside max laser range
-                if dist_point_to_line(line, (self.pose[0], self.pose[1])) > self.range:
+                if dist_point_to_line(
+                        line, (self.pose[0], self.pose[1])) > self.range:
                     continue
                 # find the (x, y) coordinates of intersection (if it exists)
                 intersection = find_intersection(beam, line)
@@ -97,8 +99,10 @@ class Laser(object):
                     if (validate_intersection(line, intersection) and 
                             validate_intersection(beam, intersection)):
                         # get a range measurement
-                        r_temp = dist_between_points((self.pose[0], self.pose[1]), intersection)
-                        # keep it if its in the max range and its the smallest seen yet
+                        r_temp = dist_between_points(
+                                (self.pose[0], self.pose[1]), intersection)
+                        # keep it if its in the max range and its the 
+                        # smallest seen yet
                         if r_temp < r_min and r_temp < self.range:
                             r_min = r_temp + random.gauss(0, self.noise)
             r_min = r_min if r_min < 999 else 0
@@ -107,12 +111,15 @@ class Laser(object):
 
 
 class Odometer(object):
+    """A simple odometer with resolution, frequency and noise properties."""
     def __init__(self):
         self.res = d.ODOM_RES
         self.freq = d.ODOM_FREQ
         self.noise = d.ODOM_NOISE
 
     def read(self, vel, ang_vel, wheel_rad, wheelbase):
+        """Returns a tuple (right_angle, left_angle) that indicates the angle
+        the odometers have turned since in one period."""
         # return zero if not moving
         if vel == 0 and ang_vel == 0:
             return (0.0, 0.0)
@@ -161,6 +168,7 @@ class Robot(object):
 
     @property
     def pose(self):
+        """Returns a tuple of the pose (x, y, heading) in [m, m, rad]."""
         return (self.x, self.y, self.heading)
 
     def __rotate(self, angle):
@@ -196,17 +204,16 @@ class Robot(object):
         # scan laser and save it with the robot pose
         self.scanned = True
         return self.laser.scan(line_map)
+        return self.width
 
     def set_width(self, width):
+        """Sets the width of the robot and activates the 'changed' flag
+        indicating that a property of the robot has changed."""
         self.width = width
         self.changed = True
 
     def set_length(self, length):
+        """Sets the length of the robot and activates the 'changed' flag
+        indicating that a property of the robot has changed."""
         self.length = length
         self.changed = True
-
-    def set_wheelbase(self, wheelbase):
-        self.wheelbase = wheelbase
-
-    def set_wheel_rad(self, wheel_rad):
-        self.wheel_rad = wheel_rad
