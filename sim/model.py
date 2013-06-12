@@ -65,7 +65,7 @@ class Laser(object):
         self.noise = d.LASER_NOISE
         self.freq = d.LASER_FREQ
 
-    def _get_beam_lines(self):
+    def __get_laser_beams(self):
         """Given the pose of the robot, returns a list of line dictionaries. Each
         dictionary contains information about a single beam in the laser scan."""
         x, y, theta = self.pose
@@ -82,7 +82,7 @@ class Laser(object):
         """Given the pose of the robot and a list of line segments (line_map),
         returns a list of range measurements."""
         ranges = []
-        laser_beams = self._get_beam_lines()
+        laser_beams = self.__get_laser_beams()
         for beam in laser_beams:
             r_min = 999
             for line in line_map:
@@ -153,7 +153,7 @@ class Robot(object):
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
 
-    def translate(self, distance):
+    def __translate(self, distance):
         """Update the (x, y) position of the robot after moving it forward a set
         distance."""
         self.x = self.x + cos(self.heading) * distance
@@ -163,7 +163,7 @@ class Robot(object):
     def pose(self):
         return (self.x, self.y, self.heading)
 
-    def rotate(self, angle):
+    def __rotate(self, angle):
         """Update the heading of the robot after rotating it a set angle."""
         self.heading += angle
         # make sure heading is between -pi and pi
@@ -177,12 +177,12 @@ class Robot(object):
         if abs(self.vel) < 1e-5:
             self.vel = 0
         else:
-            self.translate(self.vel * 1.0/self.odometer.freq)
+            self.__translate(self.vel * 1.0/self.odometer.freq)
             self.changed = True
         if abs(self.ang_vel) < 1e-5:
             self.ang_vel = 0
         else:
-            self.rotate(self.ang_vel * 1.0/self.odometer.freq)
+            self.__rotate(self.ang_vel * 1.0/self.odometer.freq)
             self.changed = True
         # Return odometry measurement
         return self.odometer.read(self.vel, self.ang_vel, self.wheel_rad,

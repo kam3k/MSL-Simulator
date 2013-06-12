@@ -187,6 +187,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
         self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
         self.ui.toggle_record_button.clicked.connect(self.toggle_recording)
+        self.ui.laser_check.stateChanged.connect(self.laser_check_changed)
+        self.ui.load_map_button.clicked.connect(self.load_map)
 
     def settings_to_default(self):
         # -----
@@ -372,6 +374,12 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.ang_vel_inc_box.setValue(value)
         self.ang_vel_inc = value
 
+    def laser_check_changed(self, value):
+        self.ui.graphics_view.show_beams = value
+
+    def load_map(self):
+        self.ui.graphics_view.draw_map_from_file('maps/random_map.txt')
+
     def keyPressEvent(self, event):
         """Adjusts the translational and angular velocites of the robot. Does
         not allow the velocities to go beyond the maximum and minimums. Sets
@@ -438,11 +446,13 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.parent = parent
         self.plot_freq = d.PLOT_FREQ
         self.line_map = []
+        self.line_item_map = []
         self.drawing_line = False # flag if user is drawing a line
         self.line_item = None
         self.scale(20, -20)
         self.scan_list = []
         self.set_colours()
+        self.show_beams = False
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
         self.setSceneRect(-d.MAP_WIDTH/2.0, -d.MAP_HEIGHT/2.0, d.MAP_WIDTH,
@@ -476,11 +486,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def set_colours(self):
         """Creates QPen instances for all the objects that will be plotted."""
         self.laser_pen = QtGui.QPen()
+        self.laser_dot_pen = QtGui.QPen()
         self.robot_pen = QtGui.QPen()
         red = QtGui.QColor(255, 0, 0)
+        trans_red = QtGui.QColor(255, 0, 0)
+        trans_red.setAlpha(40)
         green = QtGui.QColor(0, 255, 0)
-        red.setAlpha(40)
-        self.laser_pen.setColor(red)
+        self.laser_pen.setColor(trans_red)
+        self.laser_dot_pen.setColor(red)
         self.robot_pen.setColor(green)
 
     def plot_update(self):
@@ -530,7 +543,10 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def write_record_file(self):
         history = self.odom_history + self.laser_history
         chrono_hist = sorted(history, key = lambda history: history[1])
-        with open('data/record_file.txt', 'w+') as f:
+        filename = time.strftime("sim-%Y%m%d-%H%M%S") + '.txt'
+        with open('data/' + filename, 'w+') as f:
+            self.write_file_header(f)
+            f.write('### DATA ###\n\n')
             for kind, t, data in chrono_hist:
                 if kind == 'odom':
                     f.write('%s %0.4f %0.5f %0.5f\n' % (kind, t, data[0],
@@ -543,6 +559,31 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                         else:
                             f.write('%0.3f ' % r)
                     f.write('\n')
+
+    def write_file_header(self, f):
+        f.write('### SETTINGS ###\n\n')
+        f.write('# ROBOT #\n')
+        f.write('robot_width %0.3f\n' % self.robot.width)
+        f.write('robot_length %0.3f\n' % self.robot.length)
+        f.write('robot_wheelbase %0.3f\n' % self.robot.wheelbase)
+        f.write('robot_wheel_rad %0.3f\n' % self.robot.wheel_rad)
+        f.write('robot_max_vel %0.3f\n' % self.robot.max_vel)
+        f.write('robot_max_ang_vel %0.3f\n' % self.robot.max_ang_vel)
+        f.write('\n')
+        f.write('# ODOMETERS #\n')
+        f.write('odom_res %0.3f\n' % self.robot.odometer.res)
+        f.write('odom_freq %d\n' % self.robot.odometer.freq)
+        f.write('odom_noise %0.3f\n' % self.robot.odometer.noise)
+        f.write('\n')
+        f.write('# LASER #\n')
+        f.write('laser_min_angle %d\n' % self.robot.laser.min_angle)
+        f.write('laser_max_angle %d\n' % self.robot.laser.max_angle)
+        f.write('laser_res %0.3f\n' % self.robot.laser.resolution)
+        f.write('laser_range %0.3f\n' % self.robot.laser.range)
+        f.write('laser_noise %0.3f\n' % self.robot.laser.noise)
+        f.write('laser_freq %d\n' % self.robot.laser.freq)
+        f.write('\n')
+
 
     def set_timer_frequencies(self):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
@@ -572,13 +613,43 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.scan_list = []
         for (i, r) in enumerate(ranges):
             if r == 0:
-                r = laser_range
+                if self.show_beams:
+                    r = laser_range
+                else:
+                    continue
+            # Get the coordinates of the laser detected point
             x_2 = x + math.pi/180 + r*math.cos(
                     theta + math.pi/180*(laser_min_angle + laser_res*i))
             y_2 = y + math.pi/180 + r*math.sin(
                     theta + math.pi/180*(laser_min_angle + laser_res*i))
-            self.scan_list.append(
-                    self.scene().addLine(QtCore.QLineF(x, y, x_2, y_2), self.laser_pen))
+            if self.show_beams:
+                self.scan_list.append(
+                        self.scene().addLine(
+                            QtCore.QLineF(x, y, x_2, y_2), self.laser_pen))
+            else:
+                self.scan_list.append(
+                        self.scene().addEllipse(
+                            x_2, y_2, 0.1, 0.1, self.laser_dot_pen))
+
+    def draw_map_from_file(self, filename):
+        # Delete current map
+        if self.line_item_map:
+            for item in self.line_item_map:
+                self.scene().removeItem(item)
+                self.line_item_map = []
+                self.line_map = []
+        with open(filename, 'r') as f:
+            for line in f:
+                if line[0] != '#':
+                    line.strip()
+                    coord_list = line.split(' ')
+                    x_1, y_1, x_2, y_2 = [float(num) for num in coord_list]
+                    line_item = QtGui.QGraphicsLineItem(x_1, y_1, x_2, y_2)
+                    self.scene().addItem(line_item)
+                    self.line_item_map.append(line_item)
+                    line = mod.get_line_dict(x_1, y_1, x_2, y_2)
+                    self.line_map.append(line)
+
 
     def mousePressEvent(self, event):
         """Records the coordinates of the point where the mouse was clicked on
@@ -609,6 +680,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                 line = mod.get_line_dict(self.start.x(), self.start.y(),
                         end.x(), end.y())
                 self.line_map.append(line)
+                self.line_item_map.append(self.line_item)
             self.drawing_line = False
             self.line_item = None
 
