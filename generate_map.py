@@ -3,7 +3,7 @@ import math
 import numpy as np
 from collections import defaultdict
 
-SLOPE_SET = [34, 97, 2] # degrees
+SLOPE_SET = [44, 12, 111] # degrees
 SLOPE_NOISE = 4 # degrees (std. dev)
 NUM_SEGMENTS = 50
 MIN_LENGTH = 0.2

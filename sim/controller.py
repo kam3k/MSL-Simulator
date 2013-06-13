@@ -132,6 +132,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.load_map_button.clicked.connect(self.load_map)
         self.ui.toggle_record_button.clicked.connect(self.toggle_recording)
         self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
+        self.ui.zoom_in_button.clicked.connect(self.zoom_in)
+        self.ui.zoom_out_button.clicked.connect(self.zoom_out)
 
 
     def loadGUI(self):
@@ -455,6 +457,12 @@ class MainWindow(QtGui.QMainWindow):
             self.record_timer.stop()
             self.ui.toggle_record_button.setText('Start Recording')
 
+    def zoom_in(self):
+        self.ui.graphics_view.set_scale(1.1)
+
+    def zoom_out(self):
+        self.ui.graphics_view.set_scale(0.9)
+
 
 class PlotGraphicsView(QtGui.QGraphicsView):
     def __init__(self, parent):
@@ -467,8 +475,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.set_colours()
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
-        self.setSceneRect(-d.MAP_WIDTH/2.0, -d.MAP_HEIGHT/2.0, d.MAP_WIDTH,
-                d.MAP_HEIGHT)
         self.draw_scale()
         # Containers
         self.line_map = [] # line properties 
@@ -487,18 +493,35 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # SETUP METHODS
     # --------------------------------------------------------------------------
     def draw_scale(self):
-        scale_line_horiz = QtGui.QGraphicsLineItem(-3.8, 16.5, -0.8, 16.5)
-        scale_line_vert = QtGui.QGraphicsLineItem(-3.8, 16.5, -3.8, 13.5)
+        scale_line_horiz = QtGui.QGraphicsLineItem(-26, 0, 26, 0)
+        scale_line_horiz.setPen(self.scale_pen)
         self.scene().addItem(scale_line_horiz)
+        scale_line_vert = QtGui.QGraphicsLineItem(0, -26, 0, 26)
+        scale_line_vert.setPen(self.scale_pen)
         self.scene().addItem(scale_line_vert)
         font = QtGui.QFont('Monospace', pointSize=12)
-        text_horiz = self.scene().addText('3 m', font=font)
-        text_vert = self.scene().addText('3 m', font=font)
-        text_horiz.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
-        text_vert.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
-        text_horiz.setPos(-3.1, 17.4)
-        text_vert.rotate(-90)
-        text_vert.setPos(-4.7, 14.4)
+        for i in range(-26, 27, 2):
+            if i == 0:
+                continue
+            # Horizontal scale
+            h_tick = QtGui.QGraphicsLineItem(i, -0.3, i, 0.3)
+            h_tick.setPen(self.scale_pen)
+            h_text = self.scene().addText('%d' % i, font=font)
+            if i > 0:
+                h_text.setPos(i + h_text.textWidth()/2.0 + 0.15, -0.25)
+            else:
+                h_text.setPos(i + h_text.textWidth()/2.0, -0.25)
+            h_text.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
+            h_text.setDefaultTextColor(QtGui.QColor(210, 210, 210))
+            self.scene().addItem(h_tick)
+            # Vertical scale
+            v_tick = QtGui.QGraphicsLineItem(-0.3, i, 0.3, i)
+            v_tick.setPen(self.scale_pen)
+            v_text = self.scene().addText('%d' % i, font=font)
+            v_text.setPos(0.3, i + 0.55)
+            v_text.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
+            v_text.setDefaultTextColor(QtGui.QColor(210, 210, 210))
+            self.scene().addItem(v_tick)
 
     def initialiseRobot(self):
         """Draws the robot in the scene."""
@@ -515,13 +538,16 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.laser_pen = QtGui.QPen()
         self.laser_dot_pen = QtGui.QPen()
         self.robot_pen = QtGui.QPen()
+        self.scale_pen = QtGui.QPen()
         red = QtGui.QColor(255, 0, 0)
         trans_red = QtGui.QColor(255, 0, 0)
         trans_red.setAlpha(40)
         green = QtGui.QColor(0, 255, 0)
+        gray = QtGui.QColor(210, 210, 210)
         self.laser_pen.setColor(trans_red)
         self.laser_dot_pen.setColor(red)
         self.robot_pen.setColor(green)
+        self.scale_pen.setColor(gray)
 
     # --------------------------------------------------------------------------
     # EVENTS
@@ -659,6 +685,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                             x_2, y_2, 0.1, 0.1, self.laser_dot_pen))
 
     def draw_map_from_file(self, filename):
+        self.scale(0.9, 0.9)
         # Delete current map
         if self.line_item_map:
             for item in self.line_item_map:
@@ -727,6 +754,9 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     # UTILITY METHODS
     # --------------------------------------------------------------------------
+    def set_scale(self, value):
+        self.scale(value, value)
+
     def toggle_recording(self):
         if not self.recording:
             self.laser_history = []
