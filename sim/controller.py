@@ -476,10 +476,10 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.g_scene = QtGui.QGraphicsScene(self)
         self.setScene(self.g_scene)
         self.draw_scale()
+        self.poly_item = None
         # Containers
         self.line_map = [] # line properties 
         self.line_item_map = [] # line graphic items
-        self.scan_list = [] # laser beam line graphic items
         # Flags
         self.drawing_line = False # user is currently drawing a line
         self.recording = False # data is being recorded
@@ -536,17 +536,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def set_colours(self):
         """Creates QPen instances for all the objects that will be plotted."""
         self.laser_pen = QtGui.QPen()
-        self.laser_dot_pen = QtGui.QPen()
         self.robot_pen = QtGui.QPen()
         self.scale_pen = QtGui.QPen()
-        red = QtGui.QColor(255, 0, 0)
-        trans_red = QtGui.QColor(255, 0, 0)
-        trans_red.setAlpha(40)
-        green = QtGui.QColor(0, 255, 0)
+        dark_red = QtGui.QColor(204, 0, 0)
+        blue = QtGui.QColor(0, 0, 255)
         gray = QtGui.QColor(210, 210, 210)
-        self.laser_pen.setColor(trans_red)
-        self.laser_dot_pen.setColor(red)
-        self.robot_pen.setColor(green)
+        self.laser_pen.setColor(dark_red)
+        self.laser_pen.setWidthF(0.04)
+        self.robot_pen.setColor(blue)
         self.scale_pen.setColor(gray)
 
     # --------------------------------------------------------------------------
@@ -653,36 +650,34 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # DRAWING METHODS
     # --------------------------------------------------------------------------
     def draw_laser_beams(self, ranges):
-        """Deletes any previously drawn laser beams and plots the latest laser
+        """Deletes the previously drawn laser polygon and plots the latest laser
         measurement."""
+        # Delete the laser polygon from the scene
+        if self.poly_item:
+            self.scene().removeItem(self.poly_item)
+            self.poly_item = None
+        if not self.show_beams:
+            return
         x, y, theta = self.robot.pose
         laser_range = self.robot.laser.range
         laser_min_angle = self.robot.laser.min_angle
         laser_res = self.robot.laser.resolution
-        # Empty out the scan group
-        if self.scan_list:
-            for item in self.scan_list:
-                self.scene().removeItem(item)
-            self.scan_list = []
+        polygon = QtGui.QPolygonF()
+        polygon.append(QtCore.QPointF(self.robot.x, self.robot.y))
         for (i, r) in enumerate(ranges):
             if r == 0:
-                if self.show_beams:
-                    r = laser_range
-                else:
-                    continue
+                r = laser_range
             # Get the coordinates of the laser detected point
             x_2 = x + math.pi/180 + r*math.cos(
                     theta + math.pi/180*(laser_min_angle + laser_res*i))
             y_2 = y + math.pi/180 + r*math.sin(
                     theta + math.pi/180*(laser_min_angle + laser_res*i))
-            if self.show_beams:
-                self.scan_list.append(
-                        self.scene().addLine(
-                            QtCore.QLineF(x, y, x_2, y_2), self.laser_pen))
-            else:
-                self.scan_list.append(
-                        self.scene().addEllipse(
-                            x_2, y_2, 0.1, 0.1, self.laser_dot_pen))
+            polygon.append(QtCore.QPointF(x_2, y_2))
+        self.poly_item = QtGui.QGraphicsPolygonItem(polygon, scene=self.scene())
+        self.poly_item.setPen(self.laser_pen)
+        beam_color = QtGui.QColor(255, 0, 0)
+        beam_color.setAlpha(40)
+        self.poly_item.setBrush(beam_color)
 
     def draw_map_from_file(self, filename):
         self.scale(0.9, 0.9)
