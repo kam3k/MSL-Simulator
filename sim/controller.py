@@ -1,6 +1,7 @@
 # Python imports
 import math
 import time
+import random
 
 # PySide imports
 from PySide import QtGui, QtCore
@@ -125,11 +126,39 @@ class MainWindow(QtGui.QMainWindow):
                     self.ui.laser_res_slider.value()/10.0))
 
         # -----
+        # MAPPING
+        # -----
+        self.ui.clear_map_button.clicked.connect(self.clear_map)
+        self.ui.draw_polygon_button.clicked.connect(self.draw_polygon_mode)
+        self.ui.generate_map_button.clicked.connect(self.generate_map)
+        self.ui.load_map_button.clicked.connect(self.load_map)
+        self.ui.mean_diameter_box.valueChanged.connect(
+                self.mean_diameter_changed)
+        self.ui.mean_diameter_slider.valueChanged.connect(
+                lambda: self.mean_diameter_changed(
+                    self.ui.mean_diameter_slider.value()/100.0))
+        self.ui.std_dev_diameter_box.valueChanged.connect(
+                self.std_dev_diameter_changed)
+        self.ui.std_dev_diameter_slider.valueChanged.connect(
+                lambda: self.std_dev_diameter_changed(
+                    self.ui.std_dev_diameter_slider.value()/100.0))
+        self.ui.num_obstacles_slider.valueChanged.connect(
+                self.num_obstacles_changed)
+        self.ui.num_obstacles_box.valueChanged.connect(
+                self.num_obstacles_changed)
+        self.ui.polygon_edges_combo.currentIndexChanged.connect(
+                self.polygon_edges_combo_changed)
+        self.ui.polygon_size_box.valueChanged.connect(self.polygon_size_changed)
+        self.ui.polygon_size_slider.valueChanged.connect(
+                lambda: self.polygon_size_changed(
+                    self.ui.polygon_size_slider.value()/100.0))
+
+        # -----
         # OTHER
         # -----
         self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
         self.ui.laser_check.stateChanged.connect(self.laser_check_changed)
-        self.ui.load_map_button.clicked.connect(self.load_map)
+        self.ui.map_check.stateChanged.connect(self.map_check_changed)
         self.ui.toggle_record_button.clicked.connect(self.toggle_recording)
         self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
         self.ui.zoom_in_button.clicked.connect(self.zoom_in)
@@ -289,6 +318,69 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.laser_res_box.setValue(value)
         self.robot.laser.resolution = value
 
+    # -------
+    # MAPPING
+    # -------
+    def clear_map(self):
+        self.ui.graphics_view.delete_map()
+
+    def create_polygon(self, x, y, edges, diameter, angle):
+        self.ui.graphics_view.draw_polygon(x, y, edges, diameter, angle)
+
+    def draw_polygon_mode(self):
+        self.ui.graphics_view.poly_edges = int(self.ui.polygon_edges_combo.currentText())
+        self.ui.graphics_view.poly_diameter = self.ui.polygon_size_box.value()
+        self.ui.graphics_view.poly_angle = self.ui.polygon_angle_box.value()
+        self.ui.graphics_view.draw_mode = 'poly'
+
+    def generate_map(self):
+        self.clear_map()
+        option = self.ui.polygons_combo.currentText()
+        edges = int(self.ui.polygon_edges_combo.currentText())
+        diameter = self.ui.polygon_size_box.value()
+        angle = self.ui.polygon_angle_box.value()
+        self.ui.map_check.setCheckState(QtCore.Qt.Checked)
+        for i in range(self.ui.num_obstacles_box.value()):
+            if option == 'Random':
+                edges = random.choice([3, 4, 5, 6])
+                mean_diameter = self.ui.mean_diameter_box.value()
+                std_diameter = self.ui.std_dev_diameter_box.value()
+                diameter = random.gauss(mean_diameter, std_diameter)
+                angle = random.randint(0, 180)
+            x = random.uniform(-d.MAP_WIDTH/2.0, d.MAP_WIDTH/2.0)
+            y = random.uniform(-d.MAP_HEIGHT/2.0, d.MAP_HEIGHT/2.0)
+            self.create_polygon(x, y, edges, diameter, angle)
+
+    def load_map(self):
+        self.ui.map_check.setCheckState(QtCore.Qt.Checked)
+        self.ui.graphics_view.draw_map_from_file('maps/random_map.txt')
+
+    def mean_diameter_changed(self, value):
+        self.ui.mean_diameter_slider.blockSignals(True)
+        self.ui.mean_diameter_slider.setValue(int(100*value))
+        self.ui.mean_diameter_slider.blockSignals(False)
+        self.ui.mean_diameter_box.setValue(value)
+
+    def num_obstacles_changed(self, value):
+        self.ui.num_obstacles_box.setValue(value)
+        self.ui.num_obstacles_slider.setValue(value)
+
+    def polygon_edges_combo_changed(self, value):
+        self.ui.graphics_view.poly_edges = int(self.ui.polygon_edges_combo.currentText())
+
+    def polygon_size_changed(self, value):
+        self.ui.polygon_size_slider.blockSignals(True)
+        self.ui.polygon_size_slider.setValue(int(value * 100))
+        self.ui.polygon_size_slider.blockSignals(False)
+        self.ui.polygon_size_box.setValue(value)
+        self.ui.graphics_view.poly_diameter = value
+
+    def std_dev_diameter_changed(self, value):
+        self.ui.std_dev_diameter_slider.blockSignals(True)
+        self.ui.std_dev_diameter_slider.setValue(int(100*value))
+        self.ui.std_dev_diameter_slider.blockSignals(False)
+        self.ui.std_dev_diameter_box.setValue(value)
+
     # -----
     # OTHER
     # -----
@@ -356,11 +448,16 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     self.robot.ang_vel -= ang_vel_inc
 
+        # SPACE BAR PRESSED: STOP
+        elif event.key() == QtCore.Qt.Key_Space:
+            self.robot.vel = 0
+            self.robot.ang_vel = 0
+
     def laser_check_changed(self, value):
         self.ui.graphics_view.show_beams = value
 
-    def load_map(self):
-        self.ui.graphics_view.draw_map_from_file('maps/random_map.txt')
+    def map_check_changed(self, value):
+        self.ui.graphics_view.toggle_map(value)
 
     def vel_inc_changed(self, value):
         self.ui.vel_inc_box.setValue(value)
@@ -408,7 +505,11 @@ class MainWindow(QtGui.QMainWindow):
     def update_record_timer(self):
         elapsed_time = time.time() - self.ui.graphics_view.record_start_time
         self.ui.record_timer_display.setText(
-                'Elapsed time: %0.1f s' % elapsed_time)
+                '%0.1f s' % elapsed_time)
+        self.ui.record_laser_meas_label.setText(
+                '%d' % len(self.ui.graphics_view.laser_history))
+        self.ui.record_odom_meas_label.setText(
+                '%d' % len(self.ui.graphics_view.odom_history))
 
     # --------------------------------------------------------------------------
     # UTILITY METHODS
@@ -480,10 +581,13 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         # Containers
         self.line_map = [] # line properties 
         self.line_item_map = [] # line graphic items
+        self.obstacle_items = [] # obstacle polygon items
         # Flags
+        self.draw_mode = 'freehand' # freehand, line, poly
         self.drawing_line = False # user is currently drawing a line
+        self.freehand = False
         self.recording = False # data is being recorded
-        self.show_beams = False # laser beams (not just hits) are shown
+        self.show_beams = True # laser beams (not just hits) are shown
         # Timers
         self.plot_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
@@ -531,6 +635,8 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                                          self.robot_pen)
         self.rect.setTransformOriginPoint(self.robot.x,
                                           self.robot.y)
+        self.rect.setZValue(15)
+        self.rect.setBrush(QtGui.QColor(135,236,250))
         self.previous_pose = self.robot.pose
 
     def set_colours(self):
@@ -542,7 +648,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         blue = QtGui.QColor(0, 0, 255)
         gray = QtGui.QColor(210, 210, 210)
         self.laser_pen.setColor(dark_red)
-        self.laser_pen.setWidthF(0.04)
         self.robot_pen.setColor(blue)
         self.scale_pen.setColor(gray)
 
@@ -553,36 +658,48 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         """Records the coordinates of the point where the mouse was clicked on
         the scene."""
         if event.button() == QtCore.Qt.LeftButton:
-            self.start = QtCore.QPointF(self.mapToScene(event.pos()))
+            click_pos = QtCore.QPointF(self.mapToScene(event.pos()))
+            if self.draw_mode == 'poly':
+                x = click_pos.x()
+                y = click_pos.y()
+                self.draw_polygon(x, y, self.poly_edges, self.poly_diameter,
+                        self.poly_angle)
+            elif self.draw_mode == 'freehand':
+                self.start = click_pos
+            elif self.draw_mode == 'line':
+                pass
 
     def mouseMoveEvent(self, event):
         """Draws a line between the start and the current position of the 
         cursor."""
         if event.buttons() == QtCore.Qt.LeftButton:
-            if self.drawing_line:
-                end = QtCore.QPointF(self.mapToScene(event.pos()))
-                self.line_item.setLine(QtCore.QLineF(self.start, end))
-            else:
-                end = QtCore.QPointF(self.mapToScene(event.pos()))
-                self.line_item = QtGui.QGraphicsLineItem(
-                        QtCore.QLineF(self.start, end))
-                self.scene().addItem(self.line_item)
-                self.drawing_line = True
+            if self.draw_mode == 'freehand':
+                if self.drawing_line:
+                    end = QtCore.QPointF(self.mapToScene(event.pos()))
+                    self.line_item.setLine(QtCore.QLineF(self.start, end))
+                else:
+                    end = QtCore.QPointF(self.mapToScene(event.pos()))
+                    self.line_item = QtGui.QGraphicsLineItem(
+                            QtCore.QLineF(self.start, end))
+                    self.line_item.setZValue(10)
+                    self.scene().addItem(self.line_item)
+                    self.drawing_line = True
 
     def mouseReleaseEvent(self, event):
         """Draws a line from the recorded click coordinates and the position of 
         the cursor when the left mouse button is released. Adds this line to
         the line map."""
         if event.button() == QtCore.Qt.LeftButton:
-            end = QtCore.QPointF(self.mapToScene(event.pos()))
-            # Only draw a line if the start and end coordinates are different
-            if self.start.x() != end.x() or self.start.y() != end.y():
-                line = mod.get_line_dict(self.start.x(), self.start.y(),
-                        end.x(), end.y())
-                self.line_map.append(line)
-                self.line_item_map.append(self.line_item)
-            self.drawing_line = False
-            self.line_item = None
+            if self.draw_mode == 'freehand':
+                end = QtCore.QPointF(self.mapToScene(event.pos()))
+                # Only draw a line if the start and end coordinates are different
+                if self.start.x() != end.x() or self.start.y() != end.y():
+                    line = mod.get_line_dict(self.start.x(), self.start.y(),
+                            end.x(), end.y())
+                    self.line_map.append(line)
+                    self.line_item_map.append(self.line_item)
+                self.drawing_line = False
+                self.line_item = None
 
     # --------------------------------------------------------------------------
     # TIMER METHODS
@@ -612,7 +729,12 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     def plot_update(self):
         """Updates the plot. This method is called automatically by the
         plot_timer."""
-        # Size of robot in plot
+        # Laser beams
+        if self.robot.scanned:
+            self.draw_laser_beams(self.latest_laser_scan)
+            # Reset flag
+            self.robot.scanned = False
+        # Robot
         if self.robot.changed:
             self.rect.setRect(self.robot.x - self.robot.length/2.0,
                     self.robot.y - self.robot.width/2.0,
@@ -624,11 +746,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             self.move_zoomed_view()
             # Reset flag
             self.robot.changed = False
-        # Laser beams
-        if self.robot.scanned:
-            self.draw_laser_beams(self.latest_laser_scan)
-            # Reset flag
-            self.robot.scanned = False
 
     def set_timer_frequencies(self):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
@@ -649,6 +766,15 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     # DRAWING METHODS
     # --------------------------------------------------------------------------
+    def delete_map(self):
+        for item in self.line_item_map:
+            self.scene().removeItem(item)
+        for item in self.obstacle_items:
+            self.scene().removeItem(item)
+        self.line_item_map = []
+        self.obstacle_items = []
+        self.line_map = []
+
     def draw_laser_beams(self, ranges):
         """Deletes the previously drawn laser polygon and plots the latest laser
         measurement."""
@@ -674,6 +800,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                     theta + math.pi/180*(laser_min_angle + laser_res*i))
             polygon.append(QtCore.QPointF(x_2, y_2))
         self.poly_item = QtGui.QGraphicsPolygonItem(polygon, scene=self.scene())
+        self.poly_item.setZValue(5)
         self.poly_item.setPen(self.laser_pen)
         beam_color = QtGui.QColor(255, 0, 0)
         beam_color.setAlpha(40)
@@ -681,12 +808,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
 
     def draw_map_from_file(self, filename):
         self.scale(0.9, 0.9)
-        # Delete current map
-        if self.line_item_map:
-            for item in self.line_item_map:
-                self.scene().removeItem(item)
-                self.line_item_map = []
-                self.line_map = []
         with open(filename, 'r') as f:
             for line in f:
                 if line[0] != '#':
@@ -694,10 +815,38 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                     coord_list = line.split(' ')
                     x_1, y_1, x_2, y_2 = [float(num) for num in coord_list]
                     line_item = QtGui.QGraphicsLineItem(x_1, y_1, x_2, y_2)
+                    line_item.setZValue(10)
                     self.scene().addItem(line_item)
                     self.line_item_map.append(line_item)
                     line = mod.get_line_dict(x_1, y_1, x_2, y_2)
                     self.line_map.append(line)
+    
+    def draw_polygon(self, x, y, num_edges, diameter, angle):
+        poly = QtGui.QPolygonF()
+        vertices = []
+        for i in range(num_edges):
+            theta = i * 2*math.pi/num_edges
+            x_v = x + diameter/2.0 * math.cos(theta)
+            y_v = y + diameter/2.0 * math.sin(theta)
+            poly.append(QtCore.QPointF(x_v, y_v))
+            vertices.append((x_v, y_v))
+        obstacle = QtGui.QGraphicsPolygonItem(poly, scene=self.scene())
+        obstacle.setZValue(10)
+        obs_color = QtGui.QColor(220, 220, 220)
+        obstacle.setBrush(obs_color)
+        self.obstacle_items.append(obstacle)
+        # Add lines making up polygon to line map
+        for ind, vert in enumerate(vertices):
+            x_1, y_1 = vert
+            x_2, y_2 = vertices[ind-1]
+            line = mod.get_line_dict(x_1, y_1, x_2, y_2)
+            self.line_map.append(line)
+
+    def toggle_map(self, value):
+        for item in self.line_item_map:
+            item.setVisible(value)
+        for item in self.obstacle_items:
+            item.setVisible(value)
 
     # --------------------------------------------------------------------------
     # FILE METHODS

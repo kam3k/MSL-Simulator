@@ -69,8 +69,8 @@ P3AT_MAX_ANG_VEL = 148 # [deg/s]
 # ------------------------------------------------------------------------------
 
 # plot/map
-MAP_WIDTH = 10 # [m]
-MAP_HEIGHT = 10 # [m]
+MAP_WIDTH = 25 # [m]
+MAP_HEIGHT = 25 # [m]
 PLOT_FREQ = 10 # how often the plot is refreshed [Hz]
 
 # other

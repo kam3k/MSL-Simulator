@@ -1,7 +1,7 @@
 # Python imports
 import random
 from numpy import linspace
-from math import sin, cos, pi, sqrt, floor
+from math import sin, cos, pi, sqrt, floor, atan2, degrees
 
 # MSL Sim imports
 import sim.defaults as d
@@ -16,7 +16,7 @@ def dist_between_points(point_1, point_2):
 def dist_point_to_line(line, point):
     """Returns the minimum distance between a point and a line."""
     x, y = point
-    return ( (line['a'] * x + line['b'] * y - line['c']) / 
+    return ( abs(line['a'] * x + line['b'] * y - line['c']) / 
             sqrt(line['a']**2 + line['b']**2))
 
 def find_intersection(line_1, line_2):
@@ -34,7 +34,9 @@ def find_intersection(line_1, line_2):
 def get_line_dict(x_1, y_1, x_2, y_2):
     """Returns a dictionary with the line's endpoints, as well as its linear
     coefficients ax + by = c."""
-    line_dict = {'x_1': x_1, 
+    line_dict = {'p_1': (x_1, y_1),
+                 'p_2': (x_2, y_2),
+                 'x_1': x_1, 
                  'y_1': y_1,
                  'x_2': x_2,
                  'y_2': y_2,
@@ -47,9 +49,10 @@ def validate_intersection(line, point):
     """Determines whether or not a point that is known to be on a line is on a 
     particular segment of that line. The line dictionary has the endpoints of
     the line segment (keys x_1, y_1, x_2, and y_2)."""
+    eps = 1e-5 # floating point precision tie breaker (vert and horiz lines)
     x, y = point
-    if (min(line['x_1'], line['x_2']) <= x <= max(line['x_1'], line['x_2']) and
-        min(line['y_1'], line['y_2']) <= y <= max(line['y_1'], line['y_2'])):
+    if (min(line['x_1'], line['x_2']) - eps <= x <= max(line['x_1'], line['x_2']) + eps and
+        min(line['y_1'], line['y_2']) - eps <= y <= max(line['y_1'], line['y_2']) + eps):
         return True
     else:
         return False
@@ -84,13 +87,47 @@ class Laser(object):
         returns a list of range measurements."""
         ranges = []
         laser_beams = self.__get_laser_beams()
+        position = (self.pose[0], self.pose[1])
+        lines_in_range = []
+        # Only include lines inside the laser range
+        for line in line_map:
+            perp_dist = dist_point_to_line(line, position)
+            if perp_dist > self.range:
+                continue
+            else:
+                close_point = None
+                # Find point on full line where perpindicular intersects
+                x_1, y_1 = line['p_1']
+                x_2, y_2 = line['p_2']
+                x_3, y_3 = position
+                k = ((y_2-y_1) * (x_3-x_1) - (x_2-x_1) * (y_3-y_1)) / (
+                        (y_2-y_1)**2 + (x_2-x_1)**2)
+                x_4 = x_3 - k * (y_2-y_1)
+                y_4 = y_3 + k * (x_2-x_1)
+                # If this point is on the line, add it to the list
+                if validate_intersection(line, (x_4, y_4)):
+                    close_point = (x_4, y_4)
+                else:
+                    # Add the line if one of the endpoints is in range
+                    if dist_between_points(line['p_1'], position) < self.range:
+                        close_point = line['p_1']
+                    elif dist_between_points(line['p_2'], position) < self.range:
+                        close_point = line['p_2']
+                if close_point:
+                    # Only consider if it's in field of view
+                    #angle = degrees(atan2(close_point[1] - position[1],
+                    #              close_point[0] - position[0]))
+                    #heading = degrees(self.pose[2])
+                    #print heading + self.min_angle, angle, heading + self.max_angle
+                    #if (heading + self.min_angle < angle < 
+                    #        heading + self.max_angle):
+                    #    lines_in_range.append(line)
+                    lines_in_range.append(line)
+
+        print len(line_map), len(lines_in_range)
         for beam in laser_beams:
             r_min = 999
-            for line in line_map:
-                # skip line if it is entirely outside max laser range
-                if dist_point_to_line(
-                        line, (self.pose[0], self.pose[1])) > self.range:
-                    continue
+            for line in lines_in_range:
                 # find the (x, y) coordinates of intersection (if it exists)
                 intersection = find_intersection(beam, line)
                 # if the lines intersect
@@ -99,8 +136,7 @@ class Laser(object):
                     if (validate_intersection(line, intersection) and 
                             validate_intersection(beam, intersection)):
                         # get a range measurement
-                        r_temp = dist_between_points(
-                                (self.pose[0], self.pose[1]), intersection)
+                        r_temp = dist_between_points(position, intersection)
                         # keep it if its in the max range and its the 
                         # smallest seen yet
                         if r_temp < r_min and r_temp < self.range:
