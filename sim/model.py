@@ -1,7 +1,7 @@
 # Python imports
 import random
 from numpy import linspace
-from math import sin, cos, pi, sqrt, floor, atan2, degrees
+from math import sin, cos, pi, sqrt, floor, atan2, atan, degrees, radians
 
 # MSL Sim imports
 import sim.defaults as d
@@ -44,6 +44,15 @@ def get_line_dict(x_1, y_1, x_2, y_2):
                  'b': x_1 - x_2,
                  'c': (y_2 - y_1) * x_1 + (x_1 - x_2) * y_1}
     return line_dict
+
+def pi_to_pi(angle, deg=False):
+    if deg:
+        angle = radians(angle)
+    angle = angle % (2*pi)
+    if angle > pi:
+        angle -= 2*pi
+    angle = angle if not deg else degrees(angle)
+    return angle
 
 def validate_intersection(line, point):
     """Determines whether or not a point that is known to be on a line is on a 
@@ -114,15 +123,19 @@ class Laser(object):
                     elif dist_between_points(line['p_2'], position) < self.range:
                         close_point = line['p_2']
                 if close_point:
-                    # Only consider if it's in field of view
-                    #angle = degrees(atan2(close_point[1] - position[1],
-                    #              close_point[0] - position[0]))
-                    #heading = degrees(self.pose[2])
-                    #print heading + self.min_angle, angle, heading + self.max_angle
-                    #if (heading + self.min_angle < angle < 
-                    #        heading + self.max_angle):
-                    #    lines_in_range.append(line)
-                    lines_in_range.append(line)
+                    bearing = atan2(close_point[1] - position[1],
+                                    close_point[0] - position[0])
+                    bearing = degrees(pi_to_pi(bearing))
+                    heading = degrees(self.pose[2])
+                    min_angle = pi_to_pi(self.min_angle + heading, deg=True)
+                    max_angle = pi_to_pi(self.max_angle + heading, deg=True)
+                    if min_angle < max_angle:
+                        if min_angle < bearing < max_angle:
+                            lines_in_range.append(line)
+                    else:
+                        if bearing > min_angle or bearing < max_angle:
+                            lines_in_range.append(line)
+                    #lines_in_range.append(line)
 
         print len(line_map), len(lines_in_range)
         for beam in laser_beams:
@@ -211,9 +224,7 @@ class Robot(object):
         """Update the heading of the robot after rotating it a set angle."""
         self.heading += angle
         # make sure heading is between -pi and pi
-        self.heading = self.heading % (2*pi)
-        if self.heading > pi:
-            self.heading -= 2*pi
+        self.heading = pi_to_pi(self.heading)
 
     def update_pose(self):
         """Update the pose of the robot based on its velocity and odometry
