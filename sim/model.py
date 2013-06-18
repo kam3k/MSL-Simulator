@@ -91,21 +91,22 @@ class Laser(object):
             laser_beams.append(get_line_dict(x, y, x_2, y_2))
         return laser_beams
 
-    def scan(self, line_map):
-        """Given the pose of the robot and a list of line segments (line_map),
-        returns a list of range measurements."""
-        ranges = []
-        laser_beams = self.__get_laser_beams()
+    def __reduce_line_map(self, line_map):
+        """Reduces the line map to a list of lines that are currently within the
+        range and field of view of the laser."""
         position = (self.pose[0], self.pose[1])
         lines_in_range = []
-        # Only include lines inside the laser range
         for line in line_map:
             perp_dist = dist_point_to_line(line, position)
+            # If the closest point on the line is out of range, skip this line
             if perp_dist > self.range:
                 continue
             else:
-                close_point = None
-                # Find point on full line where perpindicular intersects
+                # Find the point of the line segment that is closest to the
+                # laser (this is either the perpindicular intersection or one
+                # of the endpoints)
+                close_point = None 
+                # Find the perpindicular intersection
                 x_1, y_1 = line['p_1']
                 x_2, y_2 = line['p_2']
                 x_3, y_3 = position
@@ -113,15 +114,18 @@ class Laser(object):
                         (y_2-y_1)**2 + (x_2-x_1)**2)
                 x_4 = x_3 - k * (y_2-y_1)
                 y_4 = y_3 + k * (x_2-x_1)
-                # If this point is on the line, add it to the list
+                # If the perpindicular intersection is on the line, it is 
+                # the closest point
                 if validate_intersection(line, (x_4, y_4)):
                     close_point = (x_4, y_4)
                 else:
-                    # Add the line if one of the endpoints is in range
+                    # If one of the endpoints is in range, it is the close_point
                     if dist_between_points(line['p_1'], position) < self.range:
                         close_point = line['p_1']
                     elif dist_between_points(line['p_2'], position) < self.range:
                         close_point = line['p_2']
+                # If there is a point in range, check if it's also in the FOV
+                # of the laser, and add it to the list if it is
                 if close_point:
                     bearing = atan2(close_point[1] - position[1],
                                     close_point[0] - position[0])
@@ -135,9 +139,17 @@ class Laser(object):
                     else:
                         if bearing > min_angle or bearing < max_angle:
                             lines_in_range.append(line)
-                    #lines_in_range.append(line)
+        return lines_in_range
 
-        print len(line_map), len(lines_in_range)
+    def scan(self, line_map):
+        """Given the pose of the robot and a list of line segments (line_map),
+        returns a list of range measurements."""
+        ranges = []
+        laser_beams = self.__get_laser_beams()
+        position = (self.pose[0], self.pose[1])
+        # Only include lines inside the laser range
+        lines_in_range = self.__reduce_line_map(line_map)
+        #print len(line_map), len(lines_in_range)
         for beam in laser_beams:
             r_min = 999
             for line in lines_in_range:
