@@ -19,29 +19,28 @@ class MainWindow(QtGui.QMainWindow):
         self.loadGUI()
         # Place and scale the logo
         pixmap = QtGui.QPixmap("msl_logo.png")
-        self.ui.logo_label.setPixmap(pixmap)
+        self.main.logo_label.setPixmap(pixmap)
+        self.main.logo_label.setAlignment(QtCore.Qt.AlignCenter)
+        # Set initial scale of main plot
+        self.main.graphics_view.set_scale(0.6)
         # Give the zoomed in plotting area the same scene as the zoomed out one
-        self.ui.graphics_view_zoom.setScene(self.ui.graphics_view.scene())
+        self.main.graphics_view_zoom.setScene(self.main.graphics_view.scene())
         # Initialize the camera in the zoomed in plotting window
-        self.ui.graphics_view_zoom.initializeCamera(self.robot)
+        self.main.graphics_view_zoom.initializeCamera(self.robot)
         # Give the zoomed-out plotting area a copy of the zoomed-in plotting
         # area so it can change it based on its timers
-        self.ui.graphics_view.zoom = self.ui.graphics_view_zoom
+        self.main.graphics_view.zoom = self.main.graphics_view_zoom
         # Give the plotting area the same robot as the rest of the GUI and start
         # updating it via timers
-        self.ui.graphics_view.robot = self.robot
-        self.ui.graphics_view.initialiseRobot()
+        self.main.graphics_view.robot = self.robot
+        self.main.graphics_view.initialiseRobot()
         self.settings_to_default()
         # Start a timer that updates the labels
         self.label_timer = QtCore.QTimer()
         self.label_timer.timeout.connect(self.update_info_labels)
         self.label_timer.start()
-        # Establish a timer for recordings
-        self.record_timer = QtCore.QTimer()
-        self.record_timer.setInterval(100)
-        self.record_timer.timeout.connect(self.update_record_timer)
         # Start timers that update the plot and the model
-        self.ui.graphics_view.start_timers()
+        self.main.graphics_view.start_timers()
 
     # --------------------------------------------------------------------------
     # SETUP METHODS
@@ -50,133 +49,118 @@ class MainWindow(QtGui.QMainWindow):
         # -----
         # ROBOT
         # -----
-        self.ui.robot_ang_vel_box.valueChanged.connect(
+        self.settings.robot_ang_vel_box.valueChanged.connect(
                 self.robot_ang_vel_changed)
-        self.ui.robot_ang_vel_slider.valueChanged.connect(
+        self.settings.robot_ang_vel_slider.valueChanged.connect(
                 self.robot_ang_vel_changed)
-        self.ui.robot_combo.currentIndexChanged.connect(
+        self.settings.robot_combo.currentIndexChanged.connect(
                 self.robot_combo_changed)
-        self.ui.robot_length_box.valueChanged.connect(
+        self.settings.robot_length_box.valueChanged.connect(
                 self.robot_length_changed)
-        self.ui.robot_length_slider.valueChanged.connect(
+        self.settings.robot_length_slider.valueChanged.connect(
                 lambda: self.robot_length_changed(
-                    self.ui.robot_length_slider.value()/10.0))
-        self.ui.robot_wheel_rad_box.valueChanged.connect(
+                    self.settings.robot_length_slider.value()/10.0))
+        self.settings.robot_wheel_rad_box.valueChanged.connect(
                 self.robot_wheel_rad_changed)
-        self.ui.robot_wheel_rad_slider.valueChanged.connect(
+        self.settings.robot_wheel_rad_slider.valueChanged.connect(
                 lambda: self.robot_wheel_rad_changed(
-                    self.ui.robot_wheel_rad_slider.value()/100.0))
-        self.ui.robot_wheelbase_box.valueChanged.connect(
+                    self.settings.robot_wheel_rad_slider.value()/100.0))
+        self.settings.robot_wheelbase_box.valueChanged.connect(
                 self.robot_wheelbase_changed)
-        self.ui.robot_wheelbase_slider.valueChanged.connect(
+        self.settings.robot_wheelbase_slider.valueChanged.connect(
                 lambda: self.robot_wheelbase_changed(
-                    self.ui.robot_wheelbase_slider.value()/10.0))
-        self.ui.robot_width_box.valueChanged.connect(
+                    self.settings.robot_wheelbase_slider.value()/10.0))
+        self.settings.robot_width_box.valueChanged.connect(
                 self.robot_width_changed)
-        self.ui.robot_width_slider.valueChanged.connect(
+        self.settings.robot_width_slider.valueChanged.connect(
                 lambda: self.robot_width_changed(
-                    self.ui.robot_width_slider.value()/10.0))
-        self.ui.robot_vel_box.valueChanged.connect(self.robot_vel_changed)
-        self.ui.robot_vel_slider.valueChanged.connect(
+                    self.settings.robot_width_slider.value()/10.0))
+        self.settings.robot_vel_box.valueChanged.connect(self.robot_vel_changed)
+        self.settings.robot_vel_slider.valueChanged.connect(
                 lambda: self.robot_vel_changed(
-                    self.ui.robot_vel_slider.value()/10.0))
+                    self.settings.robot_vel_slider.value()/10.0))
 
         # --------
         # ODOMETER
         # --------
-        self.ui.odom_freq_box.valueChanged.connect(self.odom_freq_changed)
-        self.ui.odom_freq_slider.valueChanged.connect(self.odom_freq_changed)
-        self.ui.odom_noise_box.valueChanged.connect(self.odom_noise_changed)
-        self.ui.odom_noise_slider.valueChanged.connect(
+        self.settings.odom_freq_box.valueChanged.connect(self.odom_freq_changed)
+        self.settings.odom_freq_slider.valueChanged.connect(self.odom_freq_changed)
+        self.settings.odom_noise_box.valueChanged.connect(self.odom_noise_changed)
+        self.settings.odom_noise_slider.valueChanged.connect(
                 lambda: self.odom_noise_changed(
-                    self.ui.odom_noise_slider.value()/10.0))
-        self.ui.odom_res_box.valueChanged.connect(self.odom_res_changed)
-        self.ui.odom_res_slider.valueChanged.connect(
+                    self.settings.odom_noise_slider.value()/10.0))
+        self.settings.odom_res_box.valueChanged.connect(self.odom_res_changed)
+        self.settings.odom_res_slider.valueChanged.connect(
                 lambda: self.odom_res_changed(
-                    self.ui.odom_res_slider.value()/100.0))
+                    self.settings.odom_res_slider.value()/100.0))
 
         # -----
         # LASER
         # -----
-        self.ui.laser_combo.currentIndexChanged.connect(self.laser_combo_changed)
-        self.ui.laser_freq_box.valueChanged.connect(
+        self.settings.laser_combo.currentIndexChanged.connect(self.laser_combo_changed)
+        self.settings.laser_freq_box.valueChanged.connect(
                 self.laser_freq_changed)
-        self.ui.laser_freq_slider.valueChanged.connect(
+        self.settings.laser_freq_slider.valueChanged.connect(
                 self.laser_freq_changed)
-        self.ui.laser_max_bear_box.valueChanged.connect(
+        self.settings.laser_max_bear_box.valueChanged.connect(
                 self.laser_max_bear_changed)
-        self.ui.laser_max_bear_slider.valueChanged.connect(
+        self.settings.laser_max_bear_slider.valueChanged.connect(
                 self.laser_max_bear_changed)
-        self.ui.laser_min_bear_box.valueChanged.connect(
+        self.settings.laser_min_bear_box.valueChanged.connect(
                 self.laser_min_bear_changed)
-        self.ui.laser_min_bear_slider.valueChanged.connect(
+        self.settings.laser_min_bear_slider.valueChanged.connect(
                 self.laser_min_bear_changed)
-        self.ui.laser_noise_box.valueChanged.connect(
+        self.settings.laser_noise_box.valueChanged.connect(
                 self.laser_noise_changed)
-        self.ui.laser_noise_slider.valueChanged.connect(
+        self.settings.laser_noise_slider.valueChanged.connect(
                 self.laser_noise_changed)
-        self.ui.laser_range_box.valueChanged.connect(
+        self.settings.laser_range_box.valueChanged.connect(
                 self.laser_range_changed)
-        self.ui.laser_range_slider.valueChanged.connect(
+        self.settings.laser_range_slider.valueChanged.connect(
                 self.laser_range_changed)
-        self.ui.laser_res_box.valueChanged.connect(
+        self.settings.laser_res_box.valueChanged.connect(
                 self.laser_res_changed)
-        self.ui.laser_res_slider.valueChanged.connect(
+        self.settings.laser_res_slider.valueChanged.connect(
                 lambda: self.laser_res_changed(
-                    self.ui.laser_res_slider.value()/10.0))
+                    self.settings.laser_res_slider.value()/10.0))
 
         # -----
         # MAPPING
         # -----
-        self.ui.clear_map_button.clicked.connect(self.clear_map)
-        self.ui.draw_polygon_button.clicked.connect(self.draw_polygon_mode)
-        self.ui.generate_map_button.clicked.connect(self.generate_map)
-        self.ui.load_map_button.clicked.connect(self.load_map)
-        self.ui.mean_diameter_box.valueChanged.connect(
-                self.mean_diameter_changed)
-        self.ui.mean_diameter_slider.valueChanged.connect(
-                lambda: self.mean_diameter_changed(
-                    self.ui.mean_diameter_slider.value()/100.0))
-        self.ui.std_dev_diameter_box.valueChanged.connect(
-                self.std_dev_diameter_changed)
-        self.ui.std_dev_diameter_slider.valueChanged.connect(
-                lambda: self.std_dev_diameter_changed(
-                    self.ui.std_dev_diameter_slider.value()/100.0))
-        self.ui.num_obstacles_slider.valueChanged.connect(
-                self.num_obstacles_changed)
-        self.ui.num_obstacles_box.valueChanged.connect(
-                self.num_obstacles_changed)
-        self.ui.polygon_edges_combo.currentIndexChanged.connect(
-                self.polygon_edges_combo_changed)
-        self.ui.polygon_size_box.valueChanged.connect(self.polygon_size_changed)
-        self.ui.polygon_size_slider.valueChanged.connect(
-                lambda: self.polygon_size_changed(
-                    self.ui.polygon_size_slider.value()/100.0))
+        self.main.load_map_button.clicked.connect(self.load_map)
+
+        # -----
+        # SETTINGS
+        # -----
+        self.main.settings_button.clicked.connect(self.open_settings_dialog)
 
         # -----
         # OTHER
         # -----
-        self.ui.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
-        self.ui.laser_check.stateChanged.connect(self.laser_check_changed)
-        self.ui.map_check.stateChanged.connect(self.map_check_changed)
-        self.ui.toggle_record_button.clicked.connect(self.toggle_recording)
-        self.ui.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
-        self.ui.zoom_in_button.clicked.connect(self.zoom_in)
-        self.ui.zoom_out_button.clicked.connect(self.zoom_out)
+        self.settings.ang_vel_inc_box.valueChanged.connect(self.ang_vel_inc_changed)
+        self.settings.laser_check.stateChanged.connect(self.laser_check_changed)
+        self.settings.map_check.stateChanged.connect(self.map_check_changed)
+        self.settings.vel_inc_box.valueChanged.connect(self.vel_inc_changed)
+        self.main.zoom_in_button.clicked.connect(self.zoom_in)
+        self.main.zoom_out_button.clicked.connect(self.zoom_out)
 
 
     def loadGUI(self):
         """Load the GUI from the .py file that was generated by the .ui file
         using the pyside-uic tool."""
         # import generated .py file here to prevent circular reference
-        from sim.view import Ui_main_window
-        self.ui = Ui_main_window()
-        self.ui.setupUi(self)
+        from sim.main_window import Ui_main_window
+        self.main = Ui_main_window()
+        self.main.setupUi(self)
+        from sim.settings_dialog import Ui_settings_dialog
+        self.settings = Ui_settings_dialog()
+        self.dialog = QtGui.QDialog()
+        self.settings.setupUi(self.dialog)
         self.connect_signals_to_slots()
         # Add items to pull down menus
-        self.ui.laser_combo.addItems(["Custom", "SICK LMS111",
+        self.settings.laser_combo.addItems(["Custom", "SICK LMS111",
             "Hokuyo URG-04LX"])
-        self.ui.robot_combo.addItems(["Custom", "Clearpath Husky A200",
+        self.settings.robot_combo.addItems(["Custom", "Clearpath Husky A200",
             "MobileRobots P3AT"])
 
     # --------------------------------------------------------------------------
@@ -187,8 +171,8 @@ class MainWindow(QtGui.QMainWindow):
     # ROBOT
     # -----
     def robot_ang_vel_changed(self, value):
-        self.ui.robot_ang_vel_slider.setValue(value)
-        self.ui.robot_ang_vel_box.setValue(value)
+        self.settings.robot_ang_vel_slider.setValue(value)
+        self.settings.robot_ang_vel_box.setValue(value)
         self.robot.max_ang_vel = value * math.pi/180
 
     def robot_combo_changed(self, value):
@@ -212,48 +196,48 @@ class MainWindow(QtGui.QMainWindow):
             self.toggle_enable_robot_settings(False)
 
     def robot_length_changed(self, value):
-        self.ui.robot_length_slider.setValue(int(10*value))
-        self.ui.robot_length_box.setValue(value)
+        self.settings.robot_length_slider.setValue(int(10*value))
+        self.settings.robot_length_box.setValue(value)
         self.robot.set_length(value)
 
     def robot_wheel_rad_changed(self, value):
-        self.ui.robot_wheel_rad_slider.setValue(int(100*value))
-        self.ui.robot_wheel_rad_box.setValue(value)
+        self.settings.robot_wheel_rad_slider.setValue(int(100*value))
+        self.settings.robot_wheel_rad_box.setValue(value)
         self.robot.wheel_rad = value
 
     def robot_wheelbase_changed(self, value):
-        self.ui.robot_wheelbase_slider.setValue(int(10*value))
-        self.ui.robot_wheelbase_box.setValue(value)
+        self.settings.robot_wheelbase_slider.setValue(int(10*value))
+        self.settings.robot_wheelbase_box.setValue(value)
         self.robot.wheelbase = value
 
     def robot_width_changed(self, value):
-        self.ui.robot_width_slider.setValue(int(10*value))
-        self.ui.robot_width_box.setValue(value)
+        self.settings.robot_width_slider.setValue(int(10*value))
+        self.settings.robot_width_box.setValue(value)
         self.robot.set_width(value)
 
     def robot_vel_changed(self, value):
-        self.ui.robot_vel_slider.setValue(int(10*value))
-        self.ui.robot_vel_box.setValue(value)
+        self.settings.robot_vel_slider.setValue(int(10*value))
+        self.settings.robot_vel_box.setValue(value)
         self.robot.max_vel = value
 
     # --------
     # ODOMETER
     # --------
     def odom_freq_changed(self, value):
-        self.ui.odom_freq_slider.setValue(value)
-        self.ui.odom_freq_box.setValue(value)
+        self.settings.odom_freq_slider.setValue(value)
+        self.settings.odom_freq_box.setValue(value)
         self.robot.odometer.freq = value
 
     def odom_noise_changed(self, value):
-        self.ui.odom_noise_slider.setValue(int(10*value))
-        self.ui.odom_noise_box.setValue(value)
+        self.settings.odom_noise_slider.setValue(int(10*value))
+        self.settings.odom_noise_box.setValue(value)
         self.robot.odometer.noise = value
 
     def odom_res_changed(self, value):
-        self.ui.odom_res_slider.blockSignals(True)
-        self.ui.odom_res_slider.setValue(int(100*value))
-        self.ui.odom_res_slider.blockSignals(False)
-        self.ui.odom_res_box.setValue(value)
+        self.settings.odom_res_slider.blockSignals(True)
+        self.settings.odom_res_slider.setValue(int(100*value))
+        self.settings.odom_res_slider.blockSignals(False)
+        self.settings.odom_res_box.setValue(value)
         self.robot.odometer.res = value
 
     # -----
@@ -280,113 +264,66 @@ class MainWindow(QtGui.QMainWindow):
             self.toggle_enable_laser_settings(False)
 
     def laser_freq_changed(self, value):
-        self.ui.laser_freq_slider.setValue(value)
-        self.ui.laser_freq_box.setValue(value)
+        self.settings.laser_freq_slider.setValue(value)
+        self.settings.laser_freq_box.setValue(value)
         self.robot.laser.freq = value
-        self.ui.graphics_view.set_timer_frequencies()
+        self.main.graphics_view.set_timer_frequencies()
 
     def laser_max_bear_changed(self, value):
-        self.ui.laser_max_bear_box.setValue(value)
-        self.ui.laser_max_bear_slider.setValue(value)
-        min_value = self.ui.laser_min_bear_slider.value()
+        self.settings.laser_max_bear_box.setValue(value)
+        self.settings.laser_max_bear_slider.setValue(value)
+        min_value = self.settings.laser_min_bear_slider.value()
         if value > min_value:
             self.robot.laser.max_angle = value
         else:
             self.robot.laser.min_angle = value
 
     def laser_min_bear_changed(self, value):
-        self.ui.laser_min_bear_box.setValue(value)
-        self.ui.laser_min_bear_slider.setValue(value)
-        max_value = self.ui.laser_max_bear_slider.value()
+        self.settings.laser_min_bear_box.setValue(value)
+        self.settings.laser_min_bear_slider.setValue(value)
+        max_value = self.settings.laser_max_bear_slider.value()
         if value < max_value:
             self.robot.laser.min_angle = value
         else:
             self.robot.laser.max_angle = value
 
     def laser_noise_changed(self, value):
-        self.ui.laser_noise_slider.setValue(value)
-        self.ui.laser_noise_box.setValue(value)
+        self.settings.laser_noise_slider.setValue(value)
+        self.settings.laser_noise_box.setValue(value)
         self.robot.laser.noise = value/100.0 # convert to metres
 
     def laser_range_changed(self, value):
-        self.ui.laser_range_box.setValue(value)
-        self.ui.laser_range_slider.setValue(value)
+        self.settings.laser_range_box.setValue(value)
+        self.settings.laser_range_slider.setValue(value)
         self.robot.laser.range = value
 
     def laser_res_changed(self, value):
-        self.ui.laser_res_slider.setValue(int(10*value))
-        self.ui.laser_res_box.setValue(value)
+        self.settings.laser_res_slider.setValue(int(10*value))
+        self.settings.laser_res_box.setValue(value)
         self.robot.laser.resolution = value
 
     # -------
     # MAPPING
     # -------
     def clear_map(self):
-        self.ui.graphics_view.delete_map()
-
-    def create_polygon(self, x, y, edges, diameter, angle):
-        self.ui.graphics_view.draw_polygon(x, y, edges, diameter, angle)
-
-    def draw_polygon_mode(self):
-        self.ui.graphics_view.poly_edges = int(self.ui.polygon_edges_combo.currentText())
-        self.ui.graphics_view.poly_diameter = self.ui.polygon_size_box.value()
-        self.ui.graphics_view.poly_angle = self.ui.polygon_angle_box.value()
-        self.ui.graphics_view.draw_mode = 'poly'
-
-    def generate_map(self):
-        self.clear_map()
-        option = self.ui.polygons_combo.currentText()
-        edges = int(self.ui.polygon_edges_combo.currentText())
-        diameter = self.ui.polygon_size_box.value()
-        angle = self.ui.polygon_angle_box.value()
-        self.ui.map_check.setCheckState(QtCore.Qt.Checked)
-        for i in range(self.ui.num_obstacles_box.value()):
-            if option == 'Random':
-                edges = random.choice([3, 4, 5, 6])
-                mean_diameter = self.ui.mean_diameter_box.value()
-                std_diameter = self.ui.std_dev_diameter_box.value()
-                diameter = random.gauss(mean_diameter, std_diameter)
-                angle = random.randint(0, 180)
-            x = random.uniform(-d.MAP_WIDTH/2.0, d.MAP_WIDTH/2.0)
-            y = random.uniform(-d.MAP_HEIGHT/2.0, d.MAP_HEIGHT/2.0)
-            self.create_polygon(x, y, edges, diameter, angle)
+        self.main.graphics_view.delete_map()
 
     def load_map(self):
-        self.ui.map_check.setCheckState(QtCore.Qt.Checked)
-        self.ui.graphics_view.draw_map_from_file('maps/random_map.txt')
+        self.settings.map_check.setCheckState(QtCore.Qt.Checked)
+        self.main.graphics_view.draw_map_from_file('maps/random_map.txt')
 
-    def mean_diameter_changed(self, value):
-        self.ui.mean_diameter_slider.blockSignals(True)
-        self.ui.mean_diameter_slider.setValue(int(100*value))
-        self.ui.mean_diameter_slider.blockSignals(False)
-        self.ui.mean_diameter_box.setValue(value)
-
-    def num_obstacles_changed(self, value):
-        self.ui.num_obstacles_box.setValue(value)
-        self.ui.num_obstacles_slider.setValue(value)
-
-    def polygon_edges_combo_changed(self, value):
-        self.ui.graphics_view.poly_edges = int(self.ui.polygon_edges_combo.currentText())
-
-    def polygon_size_changed(self, value):
-        self.ui.polygon_size_slider.blockSignals(True)
-        self.ui.polygon_size_slider.setValue(int(value * 100))
-        self.ui.polygon_size_slider.blockSignals(False)
-        self.ui.polygon_size_box.setValue(value)
-        self.ui.graphics_view.poly_diameter = value
-
-    def std_dev_diameter_changed(self, value):
-        self.ui.std_dev_diameter_slider.blockSignals(True)
-        self.ui.std_dev_diameter_slider.setValue(int(100*value))
-        self.ui.std_dev_diameter_slider.blockSignals(False)
-        self.ui.std_dev_diameter_box.setValue(value)
+    # -------
+    # SETTINGS
+    # -------
+    def open_settings_dialog(self):
+        self.dialog.exec_()
 
     # -----
     # OTHER
     # -----
 
     def ang_vel_inc_changed(self, value):
-        self.ui.ang_vel_inc_box.setValue(value)
+        self.settings.ang_vel_inc_box.setValue(value)
         self.ang_vel_inc = value
 
     def keyPressEvent(self, event):
@@ -454,13 +391,13 @@ class MainWindow(QtGui.QMainWindow):
             self.robot.ang_vel = 0
 
     def laser_check_changed(self, value):
-        self.ui.graphics_view.show_beams = value
+        self.main.graphics_view.show_beams = value
 
     def map_check_changed(self, value):
-        self.ui.graphics_view.toggle_map(value)
+        self.main.graphics_view.toggle_map(value)
 
     def vel_inc_changed(self, value):
-        self.ui.vel_inc_box.setValue(value)
+        self.settings.vel_inc_box.setValue(value)
         self.vel_inc = value
 
     # --------------------------------------------------------------------------
@@ -468,48 +405,39 @@ class MainWindow(QtGui.QMainWindow):
     # --------------------------------------------------------------------------
 
     def toggle_enable_laser_settings(self, b):
-        self.ui.laser_range_slider.setEnabled(b)
-        self.ui.laser_range_box.setEnabled(b)
-        self.ui.laser_min_bear_slider.setEnabled(b)
-        self.ui.laser_max_bear_slider.setEnabled(b)
-        self.ui.laser_min_bear_box.setEnabled(b)
-        self.ui.laser_max_bear_box.setEnabled(b)
-        self.ui.laser_res_slider.setEnabled(b)
-        self.ui.laser_res_box.setEnabled(b)
-        self.ui.laser_freq_slider.setEnabled(b)
-        self.ui.laser_freq_box.setEnabled(b)
-        self.ui.laser_noise_slider.setEnabled(b)
-        self.ui.laser_noise_box.setEnabled(b)
+        self.settings.laser_range_slider.setEnabled(b)
+        self.settings.laser_range_box.setEnabled(b)
+        self.settings.laser_min_bear_slider.setEnabled(b)
+        self.settings.laser_max_bear_slider.setEnabled(b)
+        self.settings.laser_min_bear_box.setEnabled(b)
+        self.settings.laser_max_bear_box.setEnabled(b)
+        self.settings.laser_res_slider.setEnabled(b)
+        self.settings.laser_res_box.setEnabled(b)
+        self.settings.laser_freq_slider.setEnabled(b)
+        self.settings.laser_freq_box.setEnabled(b)
+        self.settings.laser_noise_slider.setEnabled(b)
+        self.settings.laser_noise_box.setEnabled(b)
 
     def toggle_enable_robot_settings(self, b):
-        self.ui.robot_length_slider.setEnabled(b)
-        self.ui.robot_length_box.setEnabled(b)
-        self.ui.robot_width_slider.setEnabled(b)
-        self.ui.robot_width_box.setEnabled(b)
-        self.ui.robot_wheel_rad_slider.setEnabled(b)
-        self.ui.robot_wheel_rad_box.setEnabled(b)
-        self.ui.robot_wheelbase_slider.setEnabled(b)
-        self.ui.robot_wheelbase_box.setEnabled(b)
-        self.ui.robot_vel_slider.setEnabled(b)
-        self.ui.robot_vel_box.setEnabled(b)
-        self.ui.robot_ang_vel_slider.setEnabled(b)
-        self.ui.robot_ang_vel_box.setEnabled(b)
+        self.settings.robot_length_slider.setEnabled(b)
+        self.settings.robot_length_box.setEnabled(b)
+        self.settings.robot_width_slider.setEnabled(b)
+        self.settings.robot_width_box.setEnabled(b)
+        self.settings.robot_wheel_rad_slider.setEnabled(b)
+        self.settings.robot_wheel_rad_box.setEnabled(b)
+        self.settings.robot_wheelbase_slider.setEnabled(b)
+        self.settings.robot_wheelbase_box.setEnabled(b)
+        self.settings.robot_vel_slider.setEnabled(b)
+        self.settings.robot_vel_box.setEnabled(b)
+        self.settings.robot_ang_vel_slider.setEnabled(b)
+        self.settings.robot_ang_vel_box.setEnabled(b)
 
     def update_info_labels(self):
-        self.ui.pose_label.setText("%0.2f m, %0.2f m, %d deg" % (self.robot.x,
+        self.main.pose_label.setText("%0.2f m, %0.2f m, %d deg" % (self.robot.x,
                 self.robot.y, 180/math.pi*self.robot.heading))
-        self.ui.velocity_label.setText("%0.2f m/s" % self.robot.vel)
-        self.ui.ang_vel_label.setText("%d deg/s" % int(
+        self.main.velocity_label.setText("%0.2f m/s" % self.robot.vel)
+        self.main.ang_vel_label.setText("%d deg/s" % int(
             180/math.pi*self.robot.ang_vel))
-
-    def update_record_timer(self):
-        elapsed_time = time.time() - self.ui.graphics_view.record_start_time
-        self.ui.record_timer_display.setText(
-                '%0.1f s' % elapsed_time)
-        self.ui.record_laser_meas_label.setText(
-                '%d' % len(self.ui.graphics_view.laser_history))
-        self.ui.record_odom_meas_label.setText(
-                '%d' % len(self.ui.graphics_view.odom_history))
 
     # --------------------------------------------------------------------------
     # UTILITY METHODS
@@ -549,20 +477,11 @@ class MainWindow(QtGui.QMainWindow):
         self.vel_inc_changed(d.VELOCITY_INCREMENT)
         self.ang_vel_inc_changed(d.ANG_VELOCITY_INCREMENT)
 
-    def toggle_recording(self):
-        self.ui.graphics_view.toggle_recording()
-        if self.ui.graphics_view.recording:
-            self.record_timer.start()
-            self.ui.toggle_record_button.setText('Stop Recording')
-        else:
-            self.record_timer.stop()
-            self.ui.toggle_record_button.setText('Start Recording')
-
     def zoom_in(self):
-        self.ui.graphics_view.set_scale(1.1)
+        self.main.graphics_view.set_scale(1.1)
 
     def zoom_out(self):
-        self.ui.graphics_view.set_scale(0.9)
+        self.main.graphics_view.set_scale(0.9)
 
 
 class PlotGraphicsView(QtGui.QGraphicsView):
@@ -650,56 +569,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.laser_pen.setColor(dark_red)
         self.robot_pen.setColor(blue)
         self.scale_pen.setColor(gray)
-
-    # --------------------------------------------------------------------------
-    # EVENTS
-    # --------------------------------------------------------------------------
-    def mousePressEvent(self, event):
-        """Records the coordinates of the point where the mouse was clicked on
-        the scene."""
-        if event.button() == QtCore.Qt.LeftButton:
-            click_pos = QtCore.QPointF(self.mapToScene(event.pos()))
-            if self.draw_mode == 'poly':
-                x = click_pos.x()
-                y = click_pos.y()
-                self.draw_polygon(x, y, self.poly_edges, self.poly_diameter,
-                        self.poly_angle)
-            elif self.draw_mode == 'freehand':
-                self.start = click_pos
-            elif self.draw_mode == 'line':
-                pass
-
-    def mouseMoveEvent(self, event):
-        """Draws a line between the start and the current position of the 
-        cursor."""
-        if event.buttons() == QtCore.Qt.LeftButton:
-            if self.draw_mode == 'freehand':
-                if self.drawing_line:
-                    end = QtCore.QPointF(self.mapToScene(event.pos()))
-                    self.line_item.setLine(QtCore.QLineF(self.start, end))
-                else:
-                    end = QtCore.QPointF(self.mapToScene(event.pos()))
-                    self.line_item = QtGui.QGraphicsLineItem(
-                            QtCore.QLineF(self.start, end))
-                    self.line_item.setZValue(10)
-                    self.scene().addItem(self.line_item)
-                    self.drawing_line = True
-
-    def mouseReleaseEvent(self, event):
-        """Draws a line from the recorded click coordinates and the position of 
-        the cursor when the left mouse button is released. Adds this line to
-        the line map."""
-        if event.button() == QtCore.Qt.LeftButton:
-            if self.draw_mode == 'freehand':
-                end = QtCore.QPointF(self.mapToScene(event.pos()))
-                # Only draw a line if the start and end coordinates are different
-                if self.start.x() != end.x() or self.start.y() != end.y():
-                    line = mod.get_line_dict(self.start.x(), self.start.y(),
-                            end.x(), end.y())
-                    self.line_map.append(line)
-                    self.line_item_map.append(self.line_item)
-                self.drawing_line = False
-                self.line_item = None
 
     # --------------------------------------------------------------------------
     # TIMER METHODS
@@ -807,7 +676,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.poly_item.setBrush(beam_color)
 
     def draw_map_from_file(self, filename):
-        self.scale(0.9, 0.9)
         with open(filename, 'r') as f:
             for line in f:
                 if line[0] != '#':
@@ -849,68 +717,10 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             item.setVisible(value)
 
     # --------------------------------------------------------------------------
-    # FILE METHODS
-    # --------------------------------------------------------------------------
-    def write_file_header(self, f):
-        f.write('### SETTINGS ###\n\n')
-        f.write('# ROBOT #\n')
-        f.write('robot_width %0.3f\n' % self.robot.width)
-        f.write('robot_length %0.3f\n' % self.robot.length)
-        f.write('robot_wheelbase %0.3f\n' % self.robot.wheelbase)
-        f.write('robot_wheel_rad %0.3f\n' % self.robot.wheel_rad)
-        f.write('robot_max_vel %0.3f\n' % self.robot.max_vel)
-        f.write('robot_max_ang_vel %0.3f\n' % self.robot.max_ang_vel)
-        f.write('\n')
-        f.write('# ODOMETERS #\n')
-        f.write('odom_res %0.3f\n' % self.robot.odometer.res)
-        f.write('odom_freq %d\n' % self.robot.odometer.freq)
-        f.write('odom_noise %0.3f\n' % self.robot.odometer.noise)
-        f.write('\n')
-        f.write('# LASER #\n')
-        f.write('laser_min_angle %d\n' % self.robot.laser.min_angle)
-        f.write('laser_max_angle %d\n' % self.robot.laser.max_angle)
-        f.write('laser_res %0.3f\n' % self.robot.laser.resolution)
-        f.write('laser_range %0.3f\n' % self.robot.laser.range)
-        f.write('laser_noise %0.3f\n' % self.robot.laser.noise)
-        f.write('laser_freq %d\n' % self.robot.laser.freq)
-        f.write('\n')
-
-    def write_record_file(self):
-        history = self.odom_history + self.laser_history
-        chrono_hist = sorted(history, key = lambda history: history[1])
-        filename = time.strftime("sim-%Y%m%d-%H%M%S") + '.txt'
-        with open('data/' + filename, 'w+') as f:
-            self.write_file_header(f)
-            f.write('### DATA ###\n\n')
-            for kind, t, data in chrono_hist:
-                if kind == 'odom':
-                    f.write('%s %0.4f %0.5f %0.5f\n' % (kind, t, data[0],
-                        data[1]))
-                elif kind == 'ranges':
-                    f.write('%s %0.4f ' % (kind, t))
-                    for r in data:
-                        if r == 0:
-                            f.write('%d ' % r)
-                        else:
-                            f.write('%0.3f ' % r)
-                    f.write('\n')
-
-    # --------------------------------------------------------------------------
     # UTILITY METHODS
     # --------------------------------------------------------------------------
     def set_scale(self, value):
         self.scale(value, value)
-
-    def toggle_recording(self):
-        if not self.recording:
-            self.laser_history = []
-            self.odom_history = []
-            self.record_start_time = time.time()
-            self.recording = True
-        else:
-            self.recording = False
-            self.write_record_file()
-
 
 class PlotGraphicsViewZoom(QtGui.QGraphicsView):
     def __init__(self, parent):
