@@ -15,6 +15,7 @@ from sensor_msgs.msg import LaserScan
 # MSL Sim imports
 import sim.model as mod
 import sim.defaults as d
+from msl_sim.msg import Compass, Gyro, Encoders, SimInfo
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -23,6 +24,8 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.robot = mod.Robot()
         self.loadGUI()
+        # ROS
+        self.sim_info_publisher = rospy.Publisher('/msl_sim/sim_info', SimInfo, queue_size=10)
         # Place and scale the logo
         pkg_dir = rospkg.RosPack().get_path('msl_sim')
         print os.path.join(pkg_dir,'images', 'msl_logo.png')
@@ -212,11 +215,13 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.robot_wheel_rad_slider.setValue(int(100*value))
         self.settings.robot_wheel_rad_box.setValue(value)
         self.robot.wheel_rad = value
+        self.publish_sim_info_msg()
 
     def robot_wheelbase_changed(self, value):
         self.settings.robot_wheelbase_slider.setValue(int(10*value))
         self.settings.robot_wheelbase_box.setValue(value)
         self.robot.wheelbase = value
+        self.publish_sim_info_msg()
 
     def robot_width_changed(self, value):
         self.settings.robot_width_slider.setValue(int(10*value))
@@ -240,6 +245,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.odom_noise_slider.setValue(int(10*value))
         self.settings.odom_noise_box.setValue(value)
         self.robot.odometer.noise = value
+        self.publish_sim_info_msg()
 
     def odom_res_changed(self, value):
         self.settings.odom_res_slider.blockSignals(True)
@@ -247,6 +253,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.odom_res_slider.blockSignals(False)
         self.settings.odom_res_box.setValue(value)
         self.robot.odometer.res = value
+        self.publish_sim_info_msg()
 
     # -----
     # LASER
@@ -299,6 +306,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.laser_noise_slider.setValue(value)
         self.settings.laser_noise_box.setValue(value)
         self.robot.laser.noise = value/100.0 # convert to metres
+        self.publish_sim_info_msg()
 
     def laser_range_changed(self, value):
         self.settings.laser_range_box.setValue(value)
@@ -325,6 +333,21 @@ class MainWindow(QtGui.QMainWindow):
     # -------
     def open_settings_dialog(self):
         self.dialog.exec_()
+
+    # -------
+    # ROS
+    # -------
+    def publish_sim_info_msg(self):
+        msg = SimInfo()
+        msg.robot_wheel_radius = self.robot.wheel_rad
+        msg.robot_axle_track = self.robot.wheelbase
+        msg.laser_noise = self.robot.laser.noise
+        msg.encoder_resolution = self.robot.odometer.res
+        msg.encoder_noise = self.robot.odometer.noise
+        msg.gyro_noise = 0.0
+        msg.compass_noise = 0.0
+        msg.header.stamp = rospy.Time.now()
+        self.sim_info_publisher.publish(msg)
 
     # -----
     # OTHER
@@ -520,6 +543,9 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.laser_timer = QtCore.QTimer()
         # ROS
         rospy.init_node('msl_sim')
+        self.compass_publisher = rospy.Publisher('/msl_sim/compass', Compass, queue_size=10)
+        self.encoders_publisher = rospy.Publisher('/msl_sim/encoders', Encoders, queue_size=10)
+        self.gyro = rospy.Publisher('/msl_sim/gyro', Gyro, queue_size=10)
         self.laser_publisher = rospy.Publisher('/msl_sim/scan', LaserScan, queue_size=10)
 
     # --------------------------------------------------------------------------
