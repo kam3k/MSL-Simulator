@@ -2,9 +2,15 @@
 import math
 import time
 import random
+import os
 
 # PySide imports
 from PySide import QtGui, QtCore
+
+# ROS imports
+import rospy
+import rospkg
+from sensor_msgs.msg import LaserScan
 
 # MSL Sim imports
 import sim.model as mod
@@ -18,7 +24,9 @@ class MainWindow(QtGui.QMainWindow):
         self.robot = mod.Robot()
         self.loadGUI()
         # Place and scale the logo
-        pixmap = QtGui.QPixmap("msl_logo.png")
+        pkg_dir = rospkg.RosPack().get_path('msl_sim')
+        print os.path.join(pkg_dir,'images', 'msl_logo.png')
+        pixmap = QtGui.QPixmap(os.path.join(pkg_dir, 'src', 'img', 'msl_logo.png'))
         self.main.logo_label.setPixmap(pixmap)
         self.main.logo_label.setAlignment(QtCore.Qt.AlignCenter)
         # Set initial scale of main plot
@@ -505,12 +513,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.draw_mode = 'freehand' # freehand, line, poly
         self.drawing_line = False # user is currently drawing a line
         self.freehand = False
-        self.recording = False # data is being recorded
         self.show_beams = True # laser beams (not just hits) are shown
         # Timers
         self.plot_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
         self.laser_timer = QtCore.QTimer()
+        # ROS
+        rospy.init_node('msl_sim')
+        self.laser_publisher = rospy.Publisher('/msl_sim/scan', LaserScan, queue_size=10)
 
     # --------------------------------------------------------------------------
     # SETUP METHODS
@@ -575,10 +585,8 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     def laser_update(self):
         ranges = self.robot.scan_laser(self.line_map)
+        self.publish_laser_msg(ranges)
         self.latest_laser_scan = ranges
-        if self.recording:
-            elapsed_time = time.time() - self.record_start_time
-            self.laser_history.append(('ranges', elapsed_time, ranges))
 
     def move_zoomed_view(self):
         # Adjust the window of the zoomed in view
@@ -591,9 +599,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
 
     def odometry_update(self):
         odom = self.robot.update_pose()
-        if self.recording:
-            elapsed_time = time.time() - self.record_start_time
-            self.odom_history.append(('odom', elapsed_time, odom))
 
     def plot_update(self):
         """Updates the plot. This method is called automatically by the
@@ -715,6 +720,19 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             item.setVisible(value)
         for item in self.obstacle_items:
             item.setVisible(value)
+    # --------------------------------------------------------------------------
+    # ROS METHODS
+    # --------------------------------------------------------------------------
+    def publish_laser_msg(self, ranges):
+        msg = LaserScan()
+        msg.angle_min = self.robot.laser.min_angle
+        msg.angle_max = self.robot.laser.max_angle
+        msg.angle_increment = self.robot.laser.resolution
+        msg.range_min = 0.0
+        msg.range_max = self.robot.laser.range
+        msg.ranges = ranges
+        msg.header.stamp = rospy.Time.now()
+        self.laser_publisher.publish(msg)
 
     # --------------------------------------------------------------------------
     # UTILITY METHODS
