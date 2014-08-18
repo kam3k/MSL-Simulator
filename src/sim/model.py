@@ -225,28 +225,34 @@ class Odometer(object):
         self.res = d.ODOM_RES
         self.freq = d.ODOM_FREQ
         self.noise = d.ODOM_NOISE
+        self.right_partial_tick = 0.0 # fraction of tick left over from [0-1]
+        self.left_partial_tick = 0.0
 
     def read(self, vel, ang_vel, wheel_rad, wheelbase):
-        """Returns a tuple (right_angle, left_angle) that indicates the angle
-        the odometers have turned since in one period."""
-        # return zero if not moving
+        """Returns a tuple (ticks_right, ticks_left) that indicates the number
+        of ticks the odometers have turned in one period."""
+        # return None if not moving
         if vel == 0 and ang_vel == 0:
-            return (0.0, 0.0)
+            return None
         # Get angular velocities of each side
         omega_r = vel + wheelbase/(2*wheel_rad) * ang_vel
         omega_l = vel - wheelbase/(2*wheel_rad) * ang_vel
         # Calculate change of angle in this time step
         theta_r = omega_r * (1.0/self.freq)
         theta_l = omega_l * (1.0/self.freq)
-        # Calculate number of ticks for this change
+        # Calculate (float) number of ticks for this change
         ticks_r = theta_r / (self.res * pi/180) + random.gauss(0, self.noise)
         ticks_l = theta_l / (self.res * pi/180) + random.gauss(0, self.noise)
-        ticks_r = int(floor(ticks_r))
-        ticks_l = int(floor(ticks_l))
-        # Convert back to angle (in radians this time)
-        noisy_theta_r = ticks_r * self.res * pi/180 
-        noisy_theta_l = ticks_l * self.res * pi/180
-        return (noisy_theta_r, noisy_theta_l)
+        # Add the partial tick from last time
+        ticks_r += self.right_partial_tick
+        ticks_l += self.left_partial_tick
+        # Floor and convert to integer
+        ticks_r_int = int(floor(ticks_r))
+        ticks_l_int = int(floor(ticks_l))
+        # Calculate new left over ticks
+        self.right_partial_tick = ticks_r - ticks_r_int
+        self.left_partial_tick = ticks_l - ticks_l_int
+        return ticks_r_int, ticks_l_int
 
 
 class Robot(object):

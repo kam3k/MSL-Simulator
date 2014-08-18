@@ -626,7 +626,12 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.previous_pose = self.robot.pose
 
     def odometry_update(self):
-        odom = self.robot.update_pose()
+        encoders = self.robot.update_pose()
+        if encoders is not None:
+            msg = Encoders()
+            msg.right_ticks, msg.left_ticks = encoders
+            msg.header.stamp = rospy.Time.now()
+            self.encoders_publisher.publish(msg)
 
     def plot_update(self):
         """Updates the plot. This method is called automatically by the
