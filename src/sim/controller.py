@@ -52,6 +52,8 @@ class MainWindow(QtGui.QMainWindow):
         self.label_timer.start()
         # Start timers that update the plot and the model
         self.main.graphics_view.start_timers()
+        # Publish the initial simulation information in ROS
+        self.publish_sim_info_msg()
 
     # --------------------------------------------------------------------------
     # SETUP METHODS
