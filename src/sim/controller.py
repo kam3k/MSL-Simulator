@@ -15,7 +15,7 @@ from sensor_msgs.msg import LaserScan
 # MSL Sim imports
 import sim.model as mod
 import sim.defaults as d
-from msl_sim.msg import Compass, Gyro, Encoders, SimInfo
+from msl_sim.msg import Compass, Gyro, Encoders
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -24,11 +24,8 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__()
         self.robot = mod.Robot()
         self.loadGUI()
-        # ROS
-        self.sim_info_publisher = rospy.Publisher('/msl_sim/sim_info', SimInfo, queue_size=10)
         # Place and scale the logo
         pkg_dir = rospkg.RosPack().get_path('msl_sim')
-        print os.path.join(pkg_dir,'images', 'msl_logo.png')
         pixmap = QtGui.QPixmap(os.path.join(pkg_dir, 'src', 'img', 'msl_logo.png'))
         self.main.logo_label.setPixmap(pixmap)
         self.main.logo_label.setAlignment(QtCore.Qt.AlignCenter)
@@ -52,8 +49,8 @@ class MainWindow(QtGui.QMainWindow):
         self.label_timer.start()
         # Start timers that update the plot and the model
         self.main.graphics_view.start_timers()
-        # Publish the initial simulation information in ROS
-        self.publish_sim_info_msg()
+        # Initialize the ROS parameters
+        self.initialize_parameters()
 
     # --------------------------------------------------------------------------
     # SETUP METHODS
@@ -217,13 +214,13 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.robot_wheel_rad_slider.setValue(int(100*value))
         self.settings.robot_wheel_rad_box.setValue(value)
         self.robot.wheel_rad = value
-        self.publish_sim_info_msg()
+        rospy.set_param('~robot_wheel_radius', value)
 
     def robot_wheelbase_changed(self, value):
         self.settings.robot_wheelbase_slider.setValue(int(10*value))
         self.settings.robot_wheelbase_box.setValue(value)
         self.robot.wheelbase = value
-        self.publish_sim_info_msg()
+        rospy.set_param('~robot_track', value)
 
     def robot_width_changed(self, value):
         self.settings.robot_width_slider.setValue(int(10*value))
@@ -247,7 +244,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.odom_noise_slider.setValue(int(10*value))
         self.settings.odom_noise_box.setValue(value)
         self.robot.odometer.noise = value
-        self.publish_sim_info_msg()
+        rospy.set_param('~encoder_noise', value)
 
     def odom_res_changed(self, value):
         self.settings.odom_res_slider.blockSignals(True)
@@ -255,7 +252,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.odom_res_slider.blockSignals(False)
         self.settings.odom_res_box.setValue(value)
         self.robot.odometer.res = value
-        self.publish_sim_info_msg()
+        rospy.set_param('~encoder_resolution', value)
 
     # -----
     # LASER
@@ -308,7 +305,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.laser_noise_slider.setValue(value)
         self.settings.laser_noise_box.setValue(value)
         self.robot.laser.noise = value/100.0 # convert to metres
-        self.publish_sim_info_msg()
+        rospy.set_param('~laser_noise', value/100.0)
 
     def laser_range_changed(self, value):
         self.settings.laser_range_box.setValue(value)
@@ -339,17 +336,14 @@ class MainWindow(QtGui.QMainWindow):
     # -------
     # ROS
     # -------
-    def publish_sim_info_msg(self):
-        msg = SimInfo()
-        msg.robot_wheel_radius = self.robot.wheel_rad
-        msg.robot_axle_track = self.robot.wheelbase
-        msg.laser_noise = self.robot.laser.noise
-        msg.encoder_resolution = self.robot.odometer.res
-        msg.encoder_noise = self.robot.odometer.noise
-        msg.gyro_noise = 0.0
-        msg.compass_noise = 0.0
-        msg.header.stamp = rospy.Time.now()
-        self.sim_info_publisher.publish(msg)
+    def initialize_parameters(self):
+        rospy.set_param('~robot_wheel_radius', self.robot.wheel_rad)
+        rospy.set_param('~robot_track', self.robot.wheelbase)
+        rospy.set_param('~laser_noise', self.robot.laser.noise)
+        rospy.set_param('~encoder_resolution', self.robot.odometer.res)
+        rospy.set_param('~encoder_noise', self.robot.odometer.noise)
+        rospy.set_param('~gyro_noise', self.robot.gyroscope.noise)
+        rospy.set_param('~compass_noise', self.robot.compass.noise)
 
     # -----
     # OTHER
@@ -541,13 +535,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.show_beams = True # laser beams (not just hits) are shown
         # Timers
         self.plot_timer = QtCore.QTimer()
+        self.gyro_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
         self.laser_timer = QtCore.QTimer()
         # ROS
         rospy.init_node('msl_sim')
         self.compass_publisher = rospy.Publisher('/msl_sim/compass', Compass, queue_size=10)
         self.encoders_publisher = rospy.Publisher('/msl_sim/encoders', Encoders, queue_size=10)
-        self.gyro = rospy.Publisher('/msl_sim/gyro', Gyro, queue_size=10)
+        self.gyro_publisher = rospy.Publisher('/msl_sim/gyro', Gyro, queue_size=10)
         self.laser_publisher = rospy.Publisher('/msl_sim/scan', LaserScan, queue_size=10)
 
     # --------------------------------------------------------------------------
@@ -611,6 +606,13 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     # TIMER METHODS
     # --------------------------------------------------------------------------
+    def gyro_update(self):
+        angular_velocity = self.robot.gyroscope.read(self.robot.ang_vel)
+        msg = Gyro()
+        msg.angular_velocity = angular_velocity
+        msg.header.stamp = rospy.Time.now()
+        self.gyro_publisher.publish(msg)
+
     def laser_update(self):
         ranges = self.robot.scan_laser(self.line_map)
         self.publish_laser_msg(ranges)
@@ -658,6 +660,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
         self.odom_timer.setInterval(1000.0/self.robot.odometer.freq)
         self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
+        self.gyro_timer.setInterval(1000.0/self.robot.gyroscope.freq)
 
     def start_timers(self):
         """Starts separate timers to update the plot, odometry, and range data
@@ -666,9 +669,11 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.timeout.connect(self.plot_update)
         self.odom_timer.timeout.connect(self.odometry_update)
         self.laser_timer.timeout.connect(self.laser_update)
+        self.gyro_timer.timeout.connect(self.gyro_update)
         self.plot_timer.start()
         self.odom_timer.start()
         self.laser_timer.start()
+        self.gyro_timer.start()
 
     # --------------------------------------------------------------------------
     # DRAWING METHODS

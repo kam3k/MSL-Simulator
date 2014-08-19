@@ -1,2 +1,2 @@
 Header header
-float64 heading # [rad]
+float64 bearing # [rad]

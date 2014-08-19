@@ -96,6 +96,23 @@ def validate_intersection(line, point):
         return False
 
 
+class Compass(object):
+    def __init__(self):
+        self.noise = radians(d.COMPASS_NOISE)
+
+    def read(self, heading):
+        return heading + random.gauss(0, self.noise)
+
+
+class Gyroscope(object):
+    def __init__(self):
+        self.noise = radians(d.GYRO_NOISE)
+        self.freq = d.GYRO_FREQUENCY
+
+    def read(self, ang_vel):
+        return ang_vel + random.gauss(0, self.noise)
+
+
 class Laser(object):
     def __init__(self, pose):
         self.pose = pose
@@ -272,6 +289,8 @@ class Robot(object):
         self.changed = False # flag to determine if robot should be redrawn
         self.last_scan = None # (pose, ranges) of latest laser scan
         self.last_odom = None # number of ticks of latest odometry measurement
+        self.compass = Compass()
+        self.gyroscope = Gyroscope()
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
 

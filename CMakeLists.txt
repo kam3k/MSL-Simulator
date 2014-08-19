@@ -49,7 +49,6 @@ add_message_files(
   Compass.msg
   Gyro.msg
   Encoders.msg
-  SimInfo.msg
 )
 
 ## Generate services in the 'srv' folder
