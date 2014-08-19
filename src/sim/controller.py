@@ -91,6 +91,22 @@ class MainWindow(QtGui.QMainWindow):
                     self.settings.robot_vel_slider.value()/10.0))
 
         # --------
+        # COMPASS
+        # --------
+        self.settings.compass_noise_box.valueChanged.connect(self.compass_noise_changed)
+        self.settings.compass_noise_slider.valueChanged.connect(self.compass_noise_changed)
+
+        # --------
+        # GYROSCOPE
+        # --------
+        self.settings.gyro_freq_box.valueChanged.connect(self.gyro_freq_changed)
+        self.settings.gyro_freq_slider.valueChanged.connect(self.gyro_freq_changed)
+        self.settings.gyro_noise_box.valueChanged.connect(self.gyro_noise_changed)
+        self.settings.gyro_noise_slider.valueChanged.connect(
+                lambda: self.gyro_noise_changed(
+                    self.settings.gyro_noise_slider.value()/10000.0))
+
+        # --------
         # ODOMETER
         # --------
         self.settings.odom_freq_box.valueChanged.connect(self.odom_freq_changed)
@@ -233,12 +249,37 @@ class MainWindow(QtGui.QMainWindow):
         self.robot.max_vel = value
 
     # --------
+    # COMPASS
+    # --------
+    def compass_noise_changed(self, value):
+        self.settings.compass_noise_slider.setValue(value)
+        self.settings.compass_noise_box.setValue(value)
+        self.robot.compass.noise = value
+        rospy.set_param('~compass_noise', value)
+
+    # --------
+    # GYRO
+    # --------
+    def gyro_freq_changed(self, value):
+        self.settings.gyro_freq_slider.setValue(value)
+        self.settings.gyro_freq_box.setValue(value)
+        self.robot.gyroscope.freq = value
+        self.main.graphics_view.set_timer_frequencies()
+
+    def gyro_noise_changed(self, value):
+        self.settings.gyro_noise_slider.setValue(int(10000*value))
+        self.settings.gyro_noise_box.setValue(value)
+        self.robot.gyroscope.noise = value
+        rospy.set_param('~gyro_noise', value)
+
+    # --------
     # ODOMETER
     # --------
     def odom_freq_changed(self, value):
         self.settings.odom_freq_slider.setValue(value)
         self.settings.odom_freq_box.setValue(value)
         self.robot.odometer.freq = value
+        self.main.graphics_view.set_timer_frequencies()
 
     def odom_noise_changed(self, value):
         self.settings.odom_noise_slider.setValue(int(10*value))
@@ -417,6 +458,10 @@ class MainWindow(QtGui.QMainWindow):
             self.robot.vel = 0
             self.robot.ang_vel = 0
 
+        # C KEY PRESSED: TAKE COMPASS MEASUREMENT
+        elif event.key() == QtCore.Qt.Key_C:
+            self.main.graphics_view.compass_update()
+
     def laser_check_changed(self, value):
         self.main.graphics_view.show_beams = value
 
@@ -480,6 +525,17 @@ class MainWindow(QtGui.QMainWindow):
         self.robot_wheelbase_changed(d.ROBOT_WHEELBASE)
         self.robot_vel_changed(d.ROBOT_MAX_VEL)
         self.robot_ang_vel_changed(d.ROBOT_MAX_ANG_VEL)
+
+        # --------
+        # COMPASS
+        # --------
+        self.compass_noise_changed(d.GYRO_NOISE)
+
+        # --------
+        # GYRO
+        # --------
+        self.gyro_freq_changed(d.GYRO_FREQUENCY)
+        self.gyro_noise_changed(d.GYRO_NOISE)
 
         # --------
         # ODOMETER
@@ -606,6 +662,12 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # --------------------------------------------------------------------------
     # TIMER METHODS
     # --------------------------------------------------------------------------
+    def compass_update(self):
+        msg = Compass()
+        msg.bearing = self.robot.compass.read(self.robot.heading)
+        msg.header.stamp = rospy.Time.now()
+        self.compass_publisher.publish(msg)
+
     def gyro_update(self):
         angular_velocity = self.robot.gyroscope.read(self.robot.ang_vel)
         msg = Gyro()
