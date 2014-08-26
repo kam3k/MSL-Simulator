@@ -4,4 +4,4 @@
 *.pyc
 *.rec
 data/*
-maps/*
+src/maps/*

@@ -29,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>4</number>
      </property>
      <property name="usesScrollButtons">
       <bool>true</bool>
@@ -658,19 +658,6 @@
            </property>
           </widget>
          </item>
-         <item row="8" column="2">
-          <widget class="QSpinBox" name="laser_noise_box">
-           <property name="suffix">
-            <string> cm</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>15</number>
-           </property>
-          </widget>
-         </item>
          <item row="6" column="2">
           <widget class="QDoubleSpinBox" name="laser_res_box">
            <property name="suffix">
@@ -714,19 +701,6 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
-          <widget class="QSpinBox" name="laser_range_box">
-           <property name="suffix">
-            <string> m</string>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>25</number>
-           </property>
-          </widget>
-         </item>
          <item row="4" column="2">
           <widget class="QSpinBox" name="laser_min_bear_box">
            <property name="suffix">
@@ -765,7 +739,7 @@
          <item row="8" column="1">
           <widget class="QSlider" name="laser_noise_slider">
            <property name="minimum">
-            <number>1</number>
+            <number>0</number>
            </property>
            <property name="maximum">
             <number>15</number>
@@ -1021,6 +995,35 @@
            </property>
            <property name="value">
             <number>90</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QSpinBox" name="laser_range_box">
+           <property name="suffix">
+            <string> m</string>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>25</number>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="2">
+          <widget class="QDoubleSpinBox" name="laser_noise_box">
+           <property name="suffix">
+            <string> m</string>
+           </property>
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>0.150000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
            </property>
           </widget>
          </item>
@@ -1297,16 +1300,16 @@
             <string> deg/s</string>
            </property>
            <property name="decimals">
-            <number>4</number>
+            <number>2</number>
            </property>
            <property name="minimum">
-            <double>0.000100000000000</double>
+            <double>0.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>0.100000000000000</double>
+            <double>3.000000000000000</double>
            </property>
            <property name="singleStep">
-            <double>0.001000000000000</double>
+            <double>0.050000000000000</double>
            </property>
           </widget>
          </item>
@@ -1316,7 +1319,7 @@
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>1000</number>
+            <number>300</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -1416,7 +1419,7 @@
          <item row="1" column="2">
           <widget class="QDoubleSpinBox" name="compass_noise_box">
            <property name="suffix">
-            <string> deg/s</string>
+            <string> deg</string>
            </property>
            <property name="decimals">
             <number>0</number>

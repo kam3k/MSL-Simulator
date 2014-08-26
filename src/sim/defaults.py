@@ -3,14 +3,14 @@
 # ------------------------------------------------------------------------------
 
 # Default custom
-COMPASS_NOISE = 5 # standard deviation [deg]
+COMPASS_NOISE = 1 # standard deviation [deg]
 
 # ------------------------------------------------------------------------------
 # GYROSCOPES
 # ------------------------------------------------------------------------------
 
 # Default custom
-GYRO_NOISE = 0.02 # standard deviation [deg/s]
+GYRO_NOISE = 0.75 # standard deviation [deg/s]
 GYRO_FREQUENCY = 30 # [Hz]
 
 # ------------------------------------------------------------------------------
@@ -18,12 +18,12 @@ GYRO_FREQUENCY = 30 # [Hz]
 # ------------------------------------------------------------------------------
 
 # Default custom
-LASER_MIN_ANGLE = -90 # minimum angle [deg]
-LASER_MAX_ANGLE = 90 # maximum angle [deg]
+LASER_MIN_ANGLE = 0 # minimum angle [deg]
+LASER_MAX_ANGLE = 180 # maximum angle [deg]
 LASER_RES = 0.5 # angular resolution [deg]
 LASER_RANGE = 5.0 # range [m]
-LASER_NOISE = 0.01 # standard deviation on range measurement [m]
-LASER_FREQ = 10 # how often the laser is scanned [Hz]
+LASER_NOISE = 0.02 # standard deviation on range measurement [m]
+LASER_FREQ = 15 # how often the laser is scanned [Hz]
 
 # SICK LMS111
 SICK_111_MIN_ANGLE = -135 # [deg]

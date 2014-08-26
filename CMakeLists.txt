@@ -49,6 +49,7 @@ add_message_files(
   Compass.msg
   Gyro.msg
   Encoders.msg
+  Pose2DStamped.msg
 )
 
 ## Generate services in the 'srv' folder

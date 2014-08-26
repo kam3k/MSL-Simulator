@@ -15,7 +15,7 @@ from sensor_msgs.msg import LaserScan
 # MSL Sim imports
 import sim.model as mod
 import sim.defaults as d
-from msl_sim.msg import Compass, Gyro, Encoders
+from msl_sim.msg import Compass, Gyro, Encoders, Pose2DStamped
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -104,7 +104,7 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.gyro_noise_box.valueChanged.connect(self.gyro_noise_changed)
         self.settings.gyro_noise_slider.valueChanged.connect(
                 lambda: self.gyro_noise_changed(
-                    self.settings.gyro_noise_slider.value()/10000.0))
+                    self.settings.gyro_noise_slider.value()/100.0))
 
         # --------
         # ODOMETER
@@ -139,7 +139,8 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.laser_noise_box.valueChanged.connect(
                 self.laser_noise_changed)
         self.settings.laser_noise_slider.valueChanged.connect(
-                self.laser_noise_changed)
+                lambda: self.laser_noise_changed(
+                    self.settings.laser_noise_slider.value()/100.0))
         self.settings.laser_range_box.valueChanged.connect(
                 self.laser_range_changed)
         self.settings.laser_range_slider.valueChanged.connect(
@@ -254,8 +255,8 @@ class MainWindow(QtGui.QMainWindow):
     def compass_noise_changed(self, value):
         self.settings.compass_noise_slider.setValue(value)
         self.settings.compass_noise_box.setValue(value)
-        self.robot.compass.noise = value
-        rospy.set_param('~compass_noise', value)
+        self.robot.compass.noise = math.radians(value)
+        rospy.set_param('~compass_noise', math.radians(value))
 
     # --------
     # GYRO
@@ -267,10 +268,12 @@ class MainWindow(QtGui.QMainWindow):
         self.main.graphics_view.set_timer_frequencies()
 
     def gyro_noise_changed(self, value):
-        self.settings.gyro_noise_slider.setValue(int(10000*value))
+        self.settings.gyro_noise_slider.blockSignals(True)
+        self.settings.gyro_noise_slider.setValue(int(100*value))
+        self.settings.gyro_noise_slider.blockSignals(False)
         self.settings.gyro_noise_box.setValue(value)
-        self.robot.gyroscope.noise = value
-        rospy.set_param('~gyro_noise', value)
+        self.robot.gyroscope.noise = math.radians(value)
+        rospy.set_param('~gyro_noise', math.radians(value))
 
     # --------
     # ODOMETER
@@ -343,10 +346,10 @@ class MainWindow(QtGui.QMainWindow):
             self.robot.laser.max_angle = value
 
     def laser_noise_changed(self, value):
-        self.settings.laser_noise_slider.setValue(value)
+        self.settings.laser_noise_slider.setValue(int(100*value))
         self.settings.laser_noise_box.setValue(value)
-        self.robot.laser.noise = value/100.0 # convert to metres
-        rospy.set_param('~laser_noise', value/100.0)
+        self.robot.laser.noise = value
+        rospy.set_param('~laser_noise', value)
 
     def laser_range_changed(self, value):
         self.settings.laser_range_box.setValue(value)
@@ -366,7 +369,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def load_map(self):
         self.settings.map_check.setCheckState(QtCore.Qt.Checked)
-        self.main.graphics_view.draw_map_from_file('maps/random_map.txt')
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open map file', os.getenv('HOME'))
+        if filename:
+            self.main.graphics_view.draw_map_from_file(filename)
 
     # -------
     # SETTINGS
@@ -529,7 +534,7 @@ class MainWindow(QtGui.QMainWindow):
         # --------
         # COMPASS
         # --------
-        self.compass_noise_changed(d.GYRO_NOISE)
+        self.compass_noise_changed(d.COMPASS_NOISE)
 
         # --------
         # GYRO
@@ -594,11 +599,13 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.gyro_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
         self.laser_timer = QtCore.QTimer()
+        self.ground_truth_timer = QtCore.QTimer()
         # ROS
         rospy.init_node('msl_sim')
         self.compass_publisher = rospy.Publisher('/msl_sim/compass', Compass, queue_size=10)
         self.encoders_publisher = rospy.Publisher('/msl_sim/encoders', Encoders, queue_size=10)
         self.gyro_publisher = rospy.Publisher('/msl_sim/gyro', Gyro, queue_size=10)
+        self.ground_truth_publisher = rospy.Publisher('/msl_sim/ground_truth', Pose2DStamped, queue_size=10)
         self.laser_publisher = rospy.Publisher('/msl_sim/scan', LaserScan, queue_size=10)
 
     # --------------------------------------------------------------------------
@@ -668,6 +675,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         msg.header.stamp = rospy.Time.now()
         self.compass_publisher.publish(msg)
 
+    def ground_truth_update(self):
+        msg = Pose2DStamped()
+        msg.x = self.robot.x
+        msg.y = self.robot.y
+        msg.theta = self.robot.heading
+        msg.header.stamp = rospy.Time.now()
+        self.ground_truth_publisher.publish(msg)
+
     def gyro_update(self):
         angular_velocity = self.robot.gyroscope.read(self.robot.ang_vel)
         msg = Gyro()
@@ -722,6 +737,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
         self.odom_timer.setInterval(1000.0/self.robot.odometer.freq)
         self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
+        self.ground_truth_timer.setInterval(100.0)
         self.gyro_timer.setInterval(1000.0/self.robot.gyroscope.freq)
 
     def start_timers(self):
@@ -731,11 +747,13 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.timeout.connect(self.plot_update)
         self.odom_timer.timeout.connect(self.odometry_update)
         self.laser_timer.timeout.connect(self.laser_update)
+        self.ground_truth_timer.timeout.connect(self.ground_truth_update)
         self.gyro_timer.timeout.connect(self.gyro_update)
         self.plot_timer.start()
         self.odom_timer.start()
         self.laser_timer.start()
         self.gyro_timer.start()
+        self.ground_truth_timer.start()
 
     # --------------------------------------------------------------------------
     # DRAWING METHODS
@@ -786,7 +804,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                 if line[0] != '#':
                     line.strip()
                     coord_list = line.split(' ')
-                    x_1, y_1, x_2, y_2 = [float(num) for num in coord_list]
+                    x_1, y_1, x_2, y_2, _ = [float(num) for num in coord_list]
                     line_item = QtGui.QGraphicsLineItem(x_1, y_1, x_2, y_2)
                     line_item.setZValue(10)
                     self.scene().addItem(line_item)
