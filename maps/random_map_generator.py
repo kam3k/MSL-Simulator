@@ -5,10 +5,7 @@ import numpy as np
 from collections import defaultdict
 
 
-#SLOPE_SET = [0, 90] # degrees
-#SLOPE_NOISE = 2 # degrees (std. dev)
-#OUTLIER_PERCENT = 0
-#NUM_SEGMENTS = 50
+# Set some constants
 SLOPE_SET = [1, 22, 46, 67, 91, 113, 134, 157] # degrees
 SLOPE_NOISE = 1 # degrees (std. dev)
 OUTLIER_PERCENT = 15
@@ -17,15 +14,17 @@ MIN_LENGTH = 0.4
 MAX_LENGTH = 1.0
 START = (-2, 2)
 
+# Get the name of the output file
 filename = sys.argv[1]
 
+# Initializations
 prev_coord = START
-
 line_endpoints = []
 directions = []
 slope_info = defaultdict(list)
 num_outlier = 0
 
+# Generate random wall of lines
 for seg in range(NUM_SEGMENTS):
     length = random.uniform(MIN_LENGTH, MAX_LENGTH)
     if random.randint(1,100) <= OUTLIER_PERCENT:
@@ -43,6 +42,7 @@ for seg in range(NUM_SEGMENTS):
     prev_coord = (x_2, y_2)
 
 
+# Calculate some statistics on the resulting lines
 num_joints = len(slope_info.keys())
 joint_length_stats = []
 joint_orient_stats = []
@@ -53,6 +53,7 @@ for key in slope_info:
     joint_length_stats.append((np.mean(lengths), np.std(lengths)))
 
 
+# Write the lines to a file
 with open(filename, 'w+') as f:
     f.write('### MAP STATISTICS ###\n')
     f.write('# num lines: %d\n' % NUM_SEGMENTS)
