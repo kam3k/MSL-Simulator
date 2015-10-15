@@ -5,12 +5,16 @@ import numpy as np
 from collections import defaultdict
 
 
-SLOPE_SET = [135, 15, 100] # degrees
-SLOPE_NOISE = 4 # degrees (std. dev)
-OUTLIER_PERCENT = 20
-NUM_SEGMENTS = 100
-MIN_LENGTH = 0.1
-MAX_LENGTH = 1
+#SLOPE_SET = [0, 90] # degrees
+#SLOPE_NOISE = 2 # degrees (std. dev)
+#OUTLIER_PERCENT = 0
+#NUM_SEGMENTS = 50
+SLOPE_SET = [1, 22, 46, 67, 91, 113, 134, 157] # degrees
+SLOPE_NOISE = 1 # degrees (std. dev)
+OUTLIER_PERCENT = 15
+NUM_SEGMENTS = 200
+MIN_LENGTH = 0.4
+MAX_LENGTH = 1.0
 START = (-2, 2)
 
 filename = sys.argv[1]
