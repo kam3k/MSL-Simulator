@@ -3,5 +3,3 @@
 *.swo
 *.pyc
 *.rec
-data/*
-src/maps/*
