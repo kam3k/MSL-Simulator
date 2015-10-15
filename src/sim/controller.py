@@ -612,14 +612,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
     # SETUP METHODS
     # --------------------------------------------------------------------------
     def draw_scale(self):
-        scale_line_horiz = QtGui.QGraphicsLineItem(-26, 0, 26, 0)
+        scale_line_horiz = QtGui.QGraphicsLineItem(-100, 0, 100, 0)
         scale_line_horiz.setPen(self.scale_pen)
         self.scene().addItem(scale_line_horiz)
-        scale_line_vert = QtGui.QGraphicsLineItem(0, -26, 0, 26)
+        scale_line_vert = QtGui.QGraphicsLineItem(0, -100, 0, 100)
         scale_line_vert.setPen(self.scale_pen)
         self.scene().addItem(scale_line_vert)
         font = QtGui.QFont('Monospace', pointSize=12)
-        for i in range(-26, 27, 2):
+        for i in range(-100, 101, 2):
             if i == 0:
                 continue
             # Horizontal scale
@@ -629,7 +629,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
             if i > 0:
                 h_text.setPos(i + h_text.textWidth()/2.0 + 0.15, -0.25)
             else:
-                h_text.setPos(i + h_text.textWidth()/2.0, -0.25)
+                h_text.setPos(i + h_text.textWidth()/2.0 - 0.5, -0.25)
             h_text.scale(1.0/self.zoom_scale, -1.0/self.zoom_scale)
             h_text.setDefaultTextColor(QtGui.QColor(210, 210, 210))
             self.scene().addItem(h_tick)
