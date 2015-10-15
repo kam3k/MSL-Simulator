@@ -60,7 +60,7 @@ ROBOT_WIDTH = 0.5 # [m]
 ROBOT_LENGTH = 0.8 # [m]
 ROBOT_WHEELBASE = 0.5 # [m]
 ROBOT_WHEEL_RAD = 0.2 # [m]
-ROBOT_MAX_VEL = 0.5 # [m/s]
+ROBOT_MAX_VEL = 1.0 # [m/s]
 ROBOT_MAX_ANG_VEL = 30 # [deg/s]
 
 # Clearpath Husky A200
