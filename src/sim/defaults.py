@@ -4,6 +4,7 @@
 
 # Default custom
 COMPASS_NOISE = 1 # standard deviation [deg]
+COMPASS_FREQUENCY = 10 # [Hz]
 
 # ------------------------------------------------------------------------------
 # GYROSCOPES

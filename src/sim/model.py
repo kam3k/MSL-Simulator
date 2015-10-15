@@ -99,6 +99,7 @@ def validate_intersection(line, point):
 class Compass(object):
     def __init__(self):
         self.noise = radians(d.COMPASS_NOISE)
+        self.freq = d.COMPASS_FREQUENCY
 
     def read(self, heading):
         return heading + random.gauss(0, self.noise)
@@ -336,7 +337,6 @@ class Robot(object):
         # scan laser and save it with the robot pose
         self.scanned = True
         return self.laser.scan(line_map)
-        return self.width
 
     def set_width(self, width):
         """Sets the width of the robot and activates the 'changed' flag

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/settings_dialog.ui'
+# Form implementation generated from reading ui file 'settings_dialog.ui'
 #
-# Created: Mon Aug 25 22:51:23 2014
+# Created: Thu Oct 15 16:10:22 2015
 #      by: pyside-uic 0.2.15 running on PySide 1.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -588,6 +588,21 @@ class Ui_settings_dialog(object):
         self.compass_noise_box.setSingleStep(1.0)
         self.compass_noise_box.setObjectName("compass_noise_box")
         self.gridLayout_12.addWidget(self.compass_noise_box, 1, 2, 1, 1)
+        self.compass_freq_slider = QtGui.QSlider(self.compass_tab)
+        self.compass_freq_slider.setMinimum(1)
+        self.compass_freq_slider.setMaximum(100)
+        self.compass_freq_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.compass_freq_slider.setObjectName("compass_freq_slider")
+        self.gridLayout_12.addWidget(self.compass_freq_slider, 0, 1, 1, 1)
+        self.label_17 = QtGui.QLabel(self.compass_tab)
+        self.label_17.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_17.setObjectName("label_17")
+        self.gridLayout_12.addWidget(self.label_17, 0, 0, 1, 1)
+        self.compass_freq_box = QtGui.QSpinBox(self.compass_tab)
+        self.compass_freq_box.setMinimum(1)
+        self.compass_freq_box.setMaximum(100)
+        self.compass_freq_box.setObjectName("compass_freq_box")
+        self.gridLayout_12.addWidget(self.compass_freq_box, 0, 2, 1, 1)
         self.gridLayout_13.addLayout(self.gridLayout_12, 0, 0, 1, 1)
         self.tabWidget.addTab(self.compass_tab, "")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
@@ -598,7 +613,7 @@ class Ui_settings_dialog(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(settings_dialog)
-        self.tabWidget.setCurrentIndex(4)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), settings_dialog.accept)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), settings_dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(settings_dialog)
@@ -654,5 +669,6 @@ class Ui_settings_dialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.gyro_tab), QtGui.QApplication.translate("settings_dialog", "Gyro", None, QtGui.QApplication.UnicodeUTF8))
         self.label_24.setText(QtGui.QApplication.translate("settings_dialog", "Noise", None, QtGui.QApplication.UnicodeUTF8))
         self.compass_noise_box.setSuffix(QtGui.QApplication.translate("settings_dialog", " deg", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_17.setText(QtGui.QApplication.translate("settings_dialog", "Frequency", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.compass_tab), QtGui.QApplication.translate("settings_dialog", "Compass", None, QtGui.QApplication.UnicodeUTF8))
 

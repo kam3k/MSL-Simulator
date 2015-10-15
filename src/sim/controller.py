@@ -93,6 +93,8 @@ class MainWindow(QtGui.QMainWindow):
         # --------
         # COMPASS
         # --------
+        self.settings.compass_freq_box.valueChanged.connect(self.compass_freq_changed)
+        self.settings.compass_freq_slider.valueChanged.connect(self.compass_freq_changed)
         self.settings.compass_noise_box.valueChanged.connect(self.compass_noise_changed)
         self.settings.compass_noise_slider.valueChanged.connect(self.compass_noise_changed)
 
@@ -252,6 +254,12 @@ class MainWindow(QtGui.QMainWindow):
     # --------
     # COMPASS
     # --------
+    def compass_freq_changed(self, value):
+        self.settings.compass_freq_slider.setValue(value)
+        self.settings.compass_freq_box.setValue(value)
+        self.robot.compass.freq = value
+        self.main.graphics_view.set_timer_frequencies()
+
     def compass_noise_changed(self, value):
         self.settings.compass_noise_slider.setValue(value)
         self.settings.compass_noise_box.setValue(value)
@@ -463,10 +471,6 @@ class MainWindow(QtGui.QMainWindow):
             self.robot.vel = 0
             self.robot.ang_vel = 0
 
-        # C KEY PRESSED: TAKE COMPASS MEASUREMENT
-        elif event.key() == QtCore.Qt.Key_C:
-            self.main.graphics_view.compass_update()
-
     def laser_check_changed(self, value):
         self.main.graphics_view.show_beams = value
 
@@ -534,6 +538,7 @@ class MainWindow(QtGui.QMainWindow):
         # --------
         # COMPASS
         # --------
+        self.compass_freq_changed(d.COMPASS_FREQUENCY)
         self.compass_noise_changed(d.COMPASS_NOISE)
 
         # --------
@@ -597,6 +602,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         # Timers
         self.plot_timer = QtCore.QTimer()
         self.gyro_timer = QtCore.QTimer()
+        self.compass_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
         self.laser_timer = QtCore.QTimer()
         self.ground_truth_timer = QtCore.QTimer()
@@ -691,6 +697,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.gyro_publisher.publish(msg)
 
     def laser_update(self):
+        print "laser update!"
         ranges = self.robot.scan_laser(self.line_map)
         self.publish_laser_msg(ranges)
         self.latest_laser_scan = ranges
@@ -739,6 +746,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
         self.ground_truth_timer.setInterval(100.0)
         self.gyro_timer.setInterval(1000.0/self.robot.gyroscope.freq)
+        self.compass_timer.setInterval(1000.0/self.robot.compass.freq)
 
     def start_timers(self):
         """Starts separate timers to update the plot, odometry, and range data
@@ -749,10 +757,12 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.laser_timer.timeout.connect(self.laser_update)
         self.ground_truth_timer.timeout.connect(self.ground_truth_update)
         self.gyro_timer.timeout.connect(self.gyro_update)
+        self.compass_timer.timeout.connect(self.compass_update)
         self.plot_timer.start()
         self.odom_timer.start()
         self.laser_timer.start()
         self.gyro_timer.start()
+        self.compass_timer.start()
         self.ground_truth_timer.start()
 
     # --------------------------------------------------------------------------
