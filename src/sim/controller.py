@@ -697,7 +697,6 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.gyro_publisher.publish(msg)
 
     def laser_update(self):
-        print "laser update!"
         ranges = self.robot.scan_laser(self.line_map)
         self.publish_laser_msg(ranges)
         self.latest_laser_scan = ranges
