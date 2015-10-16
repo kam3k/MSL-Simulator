@@ -47,6 +47,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   Compass.msg
+  GPS.msg
   Gyro.msg
   Encoders.msg
   Pose2DStamped.msg

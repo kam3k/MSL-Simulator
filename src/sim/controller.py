@@ -15,7 +15,7 @@ from sensor_msgs.msg import LaserScan
 # MSL Sim imports
 import sim.model as mod
 import sim.defaults as d
-from msl_sim.msg import Compass, Gyro, Encoders, Pose2DStamped
+from msl_sim.msg import Compass, GPS, Gyro, Encoders, Pose2DStamped
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -97,6 +97,16 @@ class MainWindow(QtGui.QMainWindow):
         self.settings.compass_freq_slider.valueChanged.connect(self.compass_freq_changed)
         self.settings.compass_noise_box.valueChanged.connect(self.compass_noise_changed)
         self.settings.compass_noise_slider.valueChanged.connect(self.compass_noise_changed)
+
+        # --------
+        # GPS
+        # --------
+        self.settings.gps_freq_box.valueChanged.connect(self.gps_freq_changed)
+        self.settings.gps_freq_slider.valueChanged.connect(self.gps_freq_changed)
+        self.settings.gps_noise_box.valueChanged.connect(self.gps_noise_changed)
+        self.settings.gps_noise_slider.valueChanged.connect(
+                lambda: self.gps_noise_changed(
+                    self.settings.gps_noise_slider.value()/100.0))
 
         # --------
         # GYROSCOPE
@@ -267,6 +277,23 @@ class MainWindow(QtGui.QMainWindow):
         rospy.set_param('~compass_noise', math.radians(value))
 
     # --------
+    # GPS
+    # --------
+    def gps_freq_changed(self, value):
+        self.settings.gps_freq_slider.setValue(value)
+        self.settings.gps_freq_box.setValue(value)
+        self.robot.gps.freq = value
+        self.main.graphics_view.set_timer_frequencies()
+
+    def gps_noise_changed(self, value):
+        self.settings.gps_noise_slider.blockSignals(True)
+        self.settings.gps_noise_slider.setValue(int(100*value))
+        self.settings.gps_noise_slider.blockSignals(False)
+        self.settings.gps_noise_box.setValue(value)
+        self.robot.gps.noise = value
+        rospy.set_param('~gps_noise', value)
+
+    # --------
     # GYRO
     # --------
     def gyro_freq_changed(self, value):
@@ -396,6 +423,7 @@ class MainWindow(QtGui.QMainWindow):
         rospy.set_param('~laser_noise', self.robot.laser.noise)
         rospy.set_param('~encoder_resolution', self.robot.odometer.res)
         rospy.set_param('~encoder_noise', self.robot.odometer.noise)
+        rospy.set_param('~gps_noise', self.robot.gps.noise)
         rospy.set_param('~gyro_noise', self.robot.gyroscope.noise)
         rospy.set_param('~compass_noise', self.robot.compass.noise)
 
@@ -542,6 +570,12 @@ class MainWindow(QtGui.QMainWindow):
         self.compass_noise_changed(d.COMPASS_NOISE)
 
         # --------
+        # GPS
+        # --------
+        self.gps_freq_changed(d.GPS_FREQUENCY)
+        self.gps_noise_changed(d.GPS_NOISE)
+
+        # --------
         # GYRO
         # --------
         self.gyro_freq_changed(d.GYRO_FREQUENCY)
@@ -601,6 +635,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.show_beams = True # laser beams (not just hits) are shown
         # Timers
         self.plot_timer = QtCore.QTimer()
+        self.gps_timer = QtCore.QTimer()
         self.gyro_timer = QtCore.QTimer()
         self.compass_timer = QtCore.QTimer()
         self.odom_timer = QtCore.QTimer()
@@ -610,6 +645,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         rospy.init_node('msl_sim')
         self.compass_publisher = rospy.Publisher('/msl_sim/compass', Compass, queue_size=10)
         self.encoders_publisher = rospy.Publisher('/msl_sim/encoders', Encoders, queue_size=10)
+        self.gps_publisher = rospy.Publisher('/msl_sim/gps', GPS, queue_size=10)
         self.gyro_publisher = rospy.Publisher('/msl_sim/gyro', Gyro, queue_size=10)
         self.ground_truth_publisher = rospy.Publisher('/msl_sim/ground_truth', Pose2DStamped, queue_size=10)
         self.laser_publisher = rospy.Publisher('/msl_sim/scan', LaserScan, queue_size=10)
@@ -681,6 +717,14 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         msg.header.stamp = rospy.Time.now()
         self.compass_publisher.publish(msg)
 
+    def gps_update(self):
+        x, y = self.robot.gps.read(self.robot.x, self.robot.y)
+        msg = GPS()
+        msg.x = x
+        msg.y = y
+        msg.header.stamp = rospy.Time.now()
+        self.gps_publisher.publish(msg)
+
     def ground_truth_update(self):
         msg = Pose2DStamped()
         msg.x = self.robot.x
@@ -743,6 +787,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.setInterval(1000.0/self.plot_freq)
         self.odom_timer.setInterval(1000.0/self.robot.odometer.freq)
         self.laser_timer.setInterval(1000.0/self.robot.laser.freq)
+        self.gps_timer.setInterval(1000.0/self.robot.gps.freq)
         self.ground_truth_timer.setInterval(100.0)
         self.gyro_timer.setInterval(1000.0/self.robot.gyroscope.freq)
         self.compass_timer.setInterval(1000.0/self.robot.compass.freq)
@@ -754,15 +799,17 @@ class PlotGraphicsView(QtGui.QGraphicsView):
         self.plot_timer.timeout.connect(self.plot_update)
         self.odom_timer.timeout.connect(self.odometry_update)
         self.laser_timer.timeout.connect(self.laser_update)
+        self.gps_timer.timeout.connect(self.gps_update)
         self.ground_truth_timer.timeout.connect(self.ground_truth_update)
         self.gyro_timer.timeout.connect(self.gyro_update)
         self.compass_timer.timeout.connect(self.compass_update)
         self.plot_timer.start()
         self.odom_timer.start()
         self.laser_timer.start()
+        self.gps_timer.start()
+        self.ground_truth_timer.start()
         self.gyro_timer.start()
         self.compass_timer.start()
-        self.ground_truth_timer.start()
 
     # --------------------------------------------------------------------------
     # DRAWING METHODS

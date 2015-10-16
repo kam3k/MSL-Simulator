@@ -104,6 +104,14 @@ class Compass(object):
     def read(self, heading):
         return heading + random.gauss(0, self.noise)
 
+class GPS(object):
+    def __init__(self):
+        self.noise = d.GPS_NOISE
+        self.freq = d.GPS_FREQUENCY
+
+    def read(self, x, y):
+        return x + random.gauss(0, self.noise), y + random.gauss(0, self.noise)
+
 
 class Gyroscope(object):
     def __init__(self):
@@ -291,6 +299,7 @@ class Robot(object):
         self.last_scan = None # (pose, ranges) of latest laser scan
         self.last_odom = None # number of ticks of latest odometry measurement
         self.compass = Compass()
+        self.gps = GPS()
         self.gyroscope = Gyroscope()
         self.laser = Laser(self.pose)
         self.odometer = Odometer()
