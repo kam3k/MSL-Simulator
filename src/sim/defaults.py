@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# COMPASSES
+# COMPASS
 # ------------------------------------------------------------------------------
 
 # Default custom
@@ -7,7 +7,7 @@ COMPASS_NOISE = 1 # standard deviation [deg]
 COMPASS_FREQUENCY = 10 # [Hz]
 
 # ------------------------------------------------------------------------------
-# GYROSCOPES
+# GYROSCOPE
 # ------------------------------------------------------------------------------
 
 # Default custom
@@ -15,7 +15,7 @@ GYRO_NOISE = 0.75 # standard deviation [deg/s]
 GYRO_FREQUENCY = 30 # [Hz]
 
 # ------------------------------------------------------------------------------
-# LASERS
+# LASER
 # ------------------------------------------------------------------------------
 
 # Default custom
@@ -43,7 +43,7 @@ HOK_04_NOISE = 0.02 # [m] (in reality, 1% of measurement, 2 cm is half range)
 HOK_04_FREQ = 10 # [Hz]
 
 # ------------------------------------------------------------------------------
-# ODOMETERS
+# ODOMETER
 # ------------------------------------------------------------------------------
 
 # Default custom
@@ -52,7 +52,7 @@ ODOM_FREQ = 10 # how often the odometry is updated [Hz]
 ODOM_NOISE = 0.5 # ticks
 
 # ------------------------------------------------------------------------------
-# ROBOTS
+# ROBOT
 # ------------------------------------------------------------------------------
 
 # Default custom
@@ -84,12 +84,11 @@ P3AT_MAX_ANG_VEL = 148 # [deg/s]
 # MISCELLANEOUS
 # ------------------------------------------------------------------------------
 
-# plot/map
+# Plot/map
 MAP_WIDTH = 25 # [m]
 MAP_HEIGHT = 25 # [m]
 PLOT_FREQ = 10 # how often the plot is refreshed [Hz]
 
-# other
+# Other
 VELOCITY_INCREMENT = 0.1 # amount the velocity changes per key press [m/s]
 ANG_VELOCITY_INCREMENT = 5 # amount the ang. velocity changes per key press [deg/s]
-
