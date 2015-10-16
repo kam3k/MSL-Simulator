@@ -860,7 +860,7 @@ class PlotGraphicsView(QtGui.QGraphicsView):
                 if line[0] != '#':
                     line.strip()
                     coord_list = line.split(' ')
-                    x_1, y_1, x_2, y_2, _ = [float(num) for num in coord_list]
+                    x_1, y_1, x_2, y_2 = [float(num) for num in coord_list]
                     line_item = QtGui.QGraphicsLineItem(x_1, y_1, x_2, y_2)
                     line_item.setZValue(10)
                     self.scene().addItem(line_item)
