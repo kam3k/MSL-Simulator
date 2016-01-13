@@ -11,15 +11,15 @@ The robot (blue rectangle) uses its laser scanner (red semi-circle) as it drives
 ### Sensors
 The robot is equipped with five sensors: a two-dimensional laser scanner, wheel encoders, a gyroscope, a compass, and GPS. These sensors can be configured by clicking on the "Settings..." button, which brings up this dialog window:
 
-![MSL Simulator](images/settings_dialog.png)
+![Settings](images/settings_dialog.png)
 
 From here you can edit individual settings of the robot and each sensor, or (in some cases) you can pick preset values from real hardware. For example, you can choose the Hokuyo URG-04LX as your laser scanner and it will automatically choose all the right settings:
 
-![MSL Simulator](images/hokuyo.png)
+![Hokuyo](images/hokuyo.png)
 
-Note that all changes to the sensor settings occur in *real time*. For example, watch what happens as I adjust some of the laser scanner settings:
+Note that all changes to the sensor settings occur in *real time*. For example, watch what happens while I adjust the range of the laser scanner:
 
-![MSL Simulator](images/laser.gif)
+![Laser](images/laser.gif)
 
 ## Generating Maps
 
