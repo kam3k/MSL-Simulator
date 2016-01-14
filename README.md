@@ -4,6 +4,20 @@ MSL Simulator is a two-dimensional mobile robot simulator designed to be used wi
 ![MSL Simulator](images/msl_sim.gif)
 
 ## Installation
+MSL Simulator has [PySide](https://pypi.python.org/pypi/PySide/1.2.4) as a prerequisite. PySide is used to generate the GUI used by the simulator.
+
+Installing MSL Simulator is achieved the same way any other ROS package is installed. Clone the repository to your ROS workspace using Git, and then use `catkin_make` to build the package.
+
+In brief, installion proceeds as follows:
+
+1. Install PySide
+2. Navigate to the `src` directory of your ROS workspace
+3. `git clone https://github.com/kam3k/MSL-Simulator.git`
+4. `cd ..`
+5. `catkin_make`
+6. `source devel/setup.bash`
+7. `roscore`
+8. (in new terminal window) `rosrun msl_sim main.py`
 
 ## Basic Usage
 The robot (blue rectangle) uses its laser scanner (red semi-circle) as it drives through a randomly generated field of obstacles (squares). The main view window on the right is a static top down view of the environment, and the secondary view window on the left is a GPS-like view of the robot coordinate frame. The information panel at the top left displays basic information about the robot and contains buttons to change the zoom level, load a map, or change settings.
